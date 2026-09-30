@@ -8,10 +8,10 @@ overrides, asset colors without a dark variant and missing web color-scheme
 declarations. Hits are leads, not verdicts: intentional brand surfaces are fine
 when their foreground is fixed too. Always confirm by rendering both themes.
 """
+import argparse
 import json
 import os
 import re
-import sys
 
 SKIP_DIRS = {".git", "node_modules", "build", "dist", ".next", "DerivedData", "Pods",
              ".build", "out", "coverage", ".gradle", "vendor", ".turbo", ".svelte-kit"}
@@ -79,11 +79,11 @@ def scan_lines(path, rules, hits, skip_line=None):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    root = args[0] if args else "."
-    max_per_rule = 40
-    if "--max" in sys.argv:
-        max_per_rule = int(sys.argv[sys.argv.index("--max") + 1])
+    ap = argparse.ArgumentParser(description="Static scan for light/dark theme inconsistencies.")
+    ap.add_argument("path", nargs="?", default=".")
+    ap.add_argument("--max", type=int, default=40, help="max listed hits per rule")
+    opts = ap.parse_args()
+    root, max_per_rule = opts.path, opts.max
 
     hits = []
     has_color_scheme_decl = False

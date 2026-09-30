@@ -35,6 +35,7 @@ The full list of principles and sources is in [Foundations: what we follow](#fou
 - [Usage](#usage)
 - [Theme audit](#theme-audit-catch-lightdark-bugs-before-users-do)
 - [Token audit](#token-audit-find-design-system-drift)
+- [Hit area audit](#hit-area-audit-taps-that-land-where-users-aim)
 - [Repository layout](#repository-layout)
 - [Credits and license](#credits-and-license)
 
@@ -92,6 +93,12 @@ These mockups show the kind of changes the skill proposes. Their HTML sources ar
 
 > **Why:** these bugs rarely show up on the one simulator and sample data used during development. The skill checks the conditions real users hit: the smallest and largest widths, landscape and iPad, the keyboard open on every form, the largest text size, a slow network and a failed image. It names the condition behind each finding, because none of these settings show in a screenshot.
 
+### 9. Hit areas: what you see is what you tap
+
+![A card with a fill-scaled image: before, .clipped() hides the overflow but the invisible overflow still takes taps and covers the heart and Start buttons; after, .contentShape(Rectangle()) limits the hit area to the visible frame](assets/hit-areas.png)
+
+> **Why:** a button that "does nothing", or a tap that opens the neighbouring card, usually means the hit area doesn't match what's drawn. In SwiftUI, `.clipped()` cuts the drawing but not the hit area, so a fill-scaled image keeps catching taps with its invisible overflow. This is worst on iPad, where the frame is widest. The skill tap-tests every control next to media on the widest layout, and [`hit_area_audit.py`](skills/interface-craft/scripts/hit_area_audit.py) flags the pattern in code.
+
 ---
 
 ## What the agent reports
@@ -133,7 +140,7 @@ It then lists the **checks it actually ran** (browser preview, keyboard pass, bo
 <tr><td><b>Task flow</b></td><td>Can the user start, continue, finish and recover? Is anything essential (price, consequence, a required field) hidden behind progressive disclosure?</td></tr>
 <tr><td><b>Information & decision load</b></td><td>Too many equally loud options, missing defaults, information the user must remember from a previous screen</td></tr>
 <tr><td><b>Microcopy</b></td><td>Vague buttons (“OK”, “Submit”), errors without a fix, placeholder-as-label, inconsistent terms, concatenated strings that break in translation</td></tr>
-<tr><td><b>Interaction</b></td><td>Hover-only actions, missing pressed/selected/disabled states, nested click targets, no undo, duplicate submits</td></tr>
+<tr><td><b>Interaction</b></td><td>Hit areas that don't match what's drawn (clipped fill-scaled media, near-invisible tap catchers, full-cover overlays), targets under 44pt / 48dp, Hover-only actions, missing pressed/selected/disabled states, nested click targets, no undo, duplicate submits</td></tr>
 <tr><td><b>System states</b></td><td>Empty vs no-results vs failed vs loading vs partial; success claimed before it is confirmed; lost input after an error</td></tr>
 <tr><td><b>Accessibility</b></td><td>Contrast (4.5:1 text, 3:1 non-text), target size, focus order and visibility, modal focus trap and return, labels and errors linked to fields, reduced motion, screen-reader names</td></tr>
 <tr><td><b>Light / dark consistency</b><br><sub>cross-cutting</sub></td><td>Fixed backgrounds with adaptive text (or the reverse), sheets and menus that stay light in dark mode, color assets without a dark variant, local color-scheme overrides, missing <code>color-scheme</code> on the web, and contrast checked separately in each theme</td></tr>
@@ -352,6 +359,7 @@ The skill triggers automatically on broad interface requests. You can also call 
 /interface-craft audit dark mode / light mode consistency in apps/ios
 /interface-craft check the onboarding on iPhone SE with the keyboard open and at the largest text size
 /interface-craft why do our screens feel inconsistent? run the token audit on src/
+/interface-craft the favorite button on the Discover cards does nothing on iPad
 Bu ekranı incele, önce/sonra tablo ile raporla
 ```
 
@@ -462,6 +470,40 @@ The agent maps each literal to the project's **existing** tokens and text styles
 
 ---
 
+## Hit area audit: taps that land where users aim
+
+The third scanner, [`hit_area_audit.py`](skills/interface-craft/scripts/hit_area_audit.py), looks for places where the tappable area differs from what the user sees:
+
+```bash
+python3 skills/interface-craft/scripts/hit_area_audit.py path/to/your/app
+```
+
+```text
+[HIGH] clip-overflow  Card.swift:8
+       Clipped fill/offset content without .contentShape: the overflow still takes taps and can cover nearby controls
+       > .clipped()
+[WARN] small-target   Card.swift:11
+       Tappable label is 24x24 pt: pad to 44x44 or add .contentShape on a larger frame
+       > .frame(width: 24, height: 24)
+[WARN] small-target   Card.swift:15
+       Tappable label is 120x28 pt: pad to 44x44 or add .contentShape on a larger frame
+       > Text("Short").frame(width: 120, height: 28)
+[INFO] tap-catcher    Card.swift:18
+       Near-invisible layer with a tap handler: make sure it is intentional and does not cover other controls
+       > Rectangle().fill(.white.opacity(0.001)).onTapGesture { }
+```
+
+| Rule | Severity | What it catches |
+|---|---|---|
+| `clip-overflow` | high | SwiftUI: `.scaledToFill()` / `contentMode: .fill` / offset or scaled content, then `.clipped()` or `.clipShape()`, with no `.contentShape(...)`. The invisible overflow still takes taps. |
+| `small-target` | warn | SwiftUI tappable labels under 44 pt in **either** dimension, unless a larger hit area is added afterwards (`.padding(...)` + `.contentShape(...)`, or `.frame(minWidth: 44, minHeight: 44)`). `.contentShape` on the small frame alone doesn't count, because it doesn't enlarge the hit area. Compose clickables under 48 dp without `minimumInteractiveComponentSize()`. |
+| `tap-catcher` | info | Near-invisible layers with a tap handler (`.opacity(0.001)`, `Color.clear` + `.contentShape`). SwiftUI doesn't hit-test views at exactly `.opacity(0)`, so near-zero opacity is how a layer silently catches taps. |
+| `overlay-hit` | info | Web: `position: absolute/fixed` + `inset: 0` (or Tailwind `absolute inset-0`) layers without `pointer-events: none`. |
+
+Static scanning can't see runtime frames, so the agent confirms every hit by tapping each control next to media and just outside each card's edge, on the **widest** layout. For a debug view of the real frames, add `.border(.red)` in SwiftUI or use the DevTools element picker on the web.
+
+---
+
 ## Repository layout
 
 ```text
@@ -478,7 +520,8 @@ skills/interface-craft/
     └── visual-craft.md              # concrete values + SwiftUI/Compose equivalents
 skills/interface-craft/scripts/
 ├── theme_audit.py                   # static scan for fixed-vs-adaptive color mixes
-└── token_audit.py                   # static scan for font/spacing/radius drift
+├── token_audit.py                   # static scan for font/spacing/radius drift
+└── hit_area_audit.py                # static scan for hit areas that differ from what's drawn
 .claude-plugin/                      # Claude Code plugin + marketplace manifests
 examples/                            # HTML sources of the README mockups
 assets/                              # rendered images

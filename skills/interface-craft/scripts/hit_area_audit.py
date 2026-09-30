@@ -11,9 +11,14 @@ SwiftUI:
                   or below it (worst on wide/iPad layouts, where fill-scaling
                   overflows most).
   small-target    A Button / NavigationLink / onTapGesture whose label is framed
-                  smaller than 44x44 pt and has no `.contentShape`.
-  hidden-hit      `.opacity(0)` or `.hidden()`-style views that still take
-                  taps (no `.allowsHitTesting(false)` nearby).
+                  under 44 pt in either dimension, with no larger hit area added
+                  after it (`.padding(...)` + `.contentShape(...)`, or a
+                  `.frame(minWidth: 44, minHeight: 44)`). Note: `.contentShape`
+                  on the small frame alone does not enlarge the hit area.
+  tap-catcher     A near-invisible layer (`.opacity(0.001)`-style, or
+                  `Color.clear` + `.contentShape`) with a tap handler. SwiftUI
+                  skips hit testing at exactly `.opacity(0)`, so near-zero
+                  opacity is the usual way a layer silently catches taps.
 Compose:
   small-target    `Modifier.size(<48.dp)` on a clickable without
                   `minimumInteractiveComponentSize`.
@@ -24,9 +29,9 @@ Web (CSS/markup):
 Hits are leads, not verdicts. Confirm on a device at the widest and narrowest
 layouts by tapping each control next to media and at its visible edges.
 """
+import argparse
 import os
 import re
-import sys
 
 SKIP_DIRS = {".git", "node_modules", "build", "dist", ".next", "DerivedData", "Pods",
              ".build", "out", "coverage", ".gradle", "vendor", ".turbo", ".svelte-kit"}
@@ -38,7 +43,11 @@ SW_FILL = re.compile(r"contentMode:\s*\.fill|\.scaledToFill\(\)|\.scaleEffect\(|
 SW_CONTENT_SHAPE = re.compile(r"\.contentShape\(|\.allowsHitTesting\(false\)")
 SW_TAPPABLE = re.compile(r"\bButton\s*[({]|NavigationLink\s*[({]|\.onTapGesture|Menu\s*\{")
 SW_SMALL_FRAME = re.compile(r"\.frame\(\s*width:\s*(\d+(?:\.\d+)?)\s*,\s*height:\s*(\d+(?:\.\d+)?)\s*\)")
-SW_INVISIBLE = re.compile(r"\.opacity\(\s*0(?:\.0)?\s*\)")
+SW_ENLARGE = re.compile(r"\.frame\([^)]*min(?:Width|Height):\s*(?:4[4-9]|[5-9]\d|\d{3})")
+# Near-zero but non-zero opacity: exactly 0 is not hit-tested by SwiftUI.
+SW_TAP_CATCHER = re.compile(r"\.opacity\(\s*0?\.0\d*[1-9]\d*\s*\)")  # 0 < opacity < 0.1
+SW_CLEAR_SHAPE = re.compile(r"^\s*Color\.clear\b[^\n]*(?:\n[^\n]*){0,2}?\.contentShape\(")
+SW_TAP_HANDLER = re.compile(r"\.onTapGesture|Button\s*[({]|\.gesture\(")
 
 KT_SMALL = re.compile(r"Modifier[^\n]*\.size\(\s*(\d+)\.dp\s*\)[^\n]*\.clickable|\.clickable[^\n]*\.size\(\s*(\d+)\.dp\s*\)")
 KT_MIN = re.compile(r"minimumInteractiveComponentSize")
@@ -88,18 +97,21 @@ def scan_swift(path, hits):
                 hits.append(("high", "clip-overflow", path, i + 1, line.strip()[:140],
                              "Clipped fill/offset content without .contentShape: the overflow still takes taps and can cover nearby controls"))
         m = SW_SMALL_FRAME.search(line)
-        if m and float(m.group(1)) < 44 and float(m.group(2)) < 44:
+        if m and min(float(m.group(1)), float(m.group(2))) < 44:
             before = "".join(lines[max(0, i - 6):i])
-            after = "".join(lines[i:i + 6])
-            if SW_TAPPABLE.search(before) and not SW_CONTENT_SHAPE.search(before + after) \
-                    and "minHeight: 44" not in after and "frame(minWidth: 44" not in after:
+            after = "".join(lines[i + 1:i + 6])
+            # contentShape on the small frame itself does not enlarge the hit area;
+            # padding (or a >= 44 frame) followed by contentShape does.
+            enlarged = bool(SW_ENLARGE.search(after)) or bool(re.search(r"\.padding\([^)]*\)[\s\S]*\.contentShape\(", after))
+            if SW_TAPPABLE.search(before) and not enlarged:
                 hits.append(("warn", "small-target", path, i + 1, line.strip()[:140],
                              f"Tappable label is {m.group(1)}x{m.group(2)} pt: pad to 44x44 or add .contentShape on a larger frame"))
-        if SW_INVISIBLE.search(line):
+        stmt = "".join(lines[i:i + 3])
+        if SW_TAP_CATCHER.search(line) or SW_CLEAR_SHAPE.search(stmt):
             around = "".join(lines[max(0, i - 3):i + 4])
-            if "allowsHitTesting(false)" not in around and "accessibilityHidden" not in around:
-                hits.append(("info", "hidden-hit", path, i + 1, line.strip()[:140],
-                             "Invisible view still receives taps unless .allowsHitTesting(false)"))
+            if SW_TAP_HANDLER.search(around) and "allowsHitTesting(false)" not in around:
+                hits.append(("info", "tap-catcher", path, i + 1, line.strip()[:140],
+                             "Near-invisible layer with a tap handler: make sure it is intentional and does not cover other controls"))
 
 
 def scan_kotlin(path, hits):
@@ -133,11 +145,11 @@ def scan_markup(path, hits):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    root = args[0] if args else "."
-    max_per_rule = 40
-    if "--max" in sys.argv:
-        max_per_rule = int(sys.argv[sys.argv.index("--max") + 1])
+    ap = argparse.ArgumentParser(description="Static scan for tap areas that do not match what the user sees.")
+    ap.add_argument("path", nargs="?", default=".")
+    ap.add_argument("--max", type=int, default=40, help="max listed hits per rule")
+    opts = ap.parse_args()
+    root, max_per_rule = opts.path, opts.max
 
     hits = []
     for dirpath, name in walk(root):
