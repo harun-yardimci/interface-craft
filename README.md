@@ -72,6 +72,12 @@ These mockups show the kind of changes the skill proposes. Their HTML sources ar
 
 > **Why:** these details only matter once the basics above work, which is why polish comes last in the skill's priority order. The values (radius math, three-layer shadow, `tabular-nums`, `scale(0.96)` on press, and so on) are **starting defaults**. Your design tokens and what the rendered result looks like take precedence.
 
+### 6. Light / dark consistency: no fixed-vs-adaptive mixes
+
+![Filters sheet in dark mode: fixed light sheet and chips with adaptive text make labels invisible; after, surfaces use adaptive tokens and the screen is readable in both dark and light mode; a static scan flags the mix](assets/theming.png)
+
+> **Why:** the most common theme bug is a *fixed* background (`Color.white`, `#F8FAFC`, `bg-white`) paired with an *adaptive* text color that turns light in dark mode, leaving white text on a white surface. The skill checks that background and foreground come from the same theme source. It renders the screen and its overlays in **both** themes, and ships a static scanner, [`theme_audit.py`](skills/interface-craft/scripts/theme_audit.py), that flags these mixes in SwiftUI, Compose and Tailwind before users see them.
+
 ---
 
 ## What the agent reports
@@ -116,6 +122,7 @@ It then lists the **checks it actually ran** (browser preview, keyboard pass, bo
 <tr><td><b>Interaction</b></td><td>Hover-only actions, missing pressed/selected/disabled states, nested click targets, no undo, duplicate submits</td></tr>
 <tr><td><b>System states</b></td><td>Empty vs no-results vs failed vs loading vs partial; success claimed before it is confirmed; lost input after an error</td></tr>
 <tr><td><b>Accessibility</b></td><td>Contrast (4.5:1 text, 3:1 non-text), target size, focus order and visibility, modal focus trap and return, labels and errors linked to fields, reduced motion, screen-reader names</td></tr>
+<tr><td><b>Light / dark consistency</b><br><sub>cross-cutting</sub></td><td>Fixed backgrounds with adaptive text (or the reverse), sheets and menus that stay light in dark mode, color assets without a dark variant, local color-scheme overrides, missing <code>color-scheme</code> on the web, and contrast checked separately in each theme</td></tr>
 <tr><td><b>Visual craft</b></td><td>Concentric radius, layered shadows vs borders, tabular numbers, optical alignment, text wrapping, interruptible motion, <code>transition: all</code>, layout shift</td></tr>
 </table>
 
@@ -249,7 +256,17 @@ Source: W3C, [Web Content Accessibility Guidelines 2.2](https://www.w3.org/TR/WC
 
 The skill reports which accessibility checks it actually ran, and says clearly that an automated check is not a conformance certificate.
 
-### 5. House rules
+### 5. Platform color and theming guidance
+
+Sources: [Apple HIG: Dark Mode](https://developer.apple.com/design/human-interface-guidelines/dark-mode) · [Material 3: color roles](https://m3.material.io/styles/color/roles) · [Android: dark theme](https://developer.android.com/develop/ui/views/theming/darktheme) · MDN [`color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/color-scheme) and [`prefers-color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme).
+
+- **Pair roles:** each foreground comes from the same theme source as its background (`surface`/`onSurface`, `systemBackground`/`label`, `bg-background`/`text-foreground`). Fixed colors are only for deliberately theme-independent surfaces, and then the foreground is fixed too.
+- **Every token has a dark value.** Asset color sets, `values-night`, `.dark` CSS variables.
+- **Overlays count:** sheets, menus, alerts, toasts, pickers and empty/error states are rendered in both themes.
+- **Contrast per theme:** WCAG thresholds apply separately in light and dark, for every state.
+- **Static scan + visual check:** `scripts/theme_audit.py` finds leads, and rendering both themes confirms them. On shared simulators the previous appearance is recorded and restored.
+
+### 6. House rules
 
 These rules come from UX writing and ethical-design practice and are applied throughout:
 
@@ -315,6 +332,7 @@ The skill triggers automatically on broad interface requests. You can also call 
 /interface-craft review the checkout flow in app/checkout, review only
 /interface-craft improve the onboarding screens, keep the layout
 /interface-craft only fix the error and empty states on the invoices page
+/interface-craft audit dark mode / light mode consistency in apps/ios
 Bu ekranı incele, önce/sonra tablo ile raporla
 ```
 
@@ -333,7 +351,10 @@ skills/interface-craft/
     ├── cognitive-principles.md      # Laws of UX as decision aids
     ├── microcopy.md                 # patterns, before → after, localization
     ├── accessibility.md             # WCAG 2.2 AA thresholds and checks
+    ├── theming.md                   # light/dark consistency: pairing rules, patterns, audit
     └── visual-craft.md              # concrete values + SwiftUI/Compose equivalents
+skills/interface-craft/scripts/
+└── theme_audit.py                   # static scan for fixed-vs-adaptive color mixes
 .claude-plugin/                      # Claude Code plugin + marketplace manifests
 examples/                            # HTML sources of the README mockups
 assets/                              # rendered images

@@ -6,6 +6,7 @@ A design and verification checklist, not a compliance certificate. Baseline is [
 | Check | Threshold |
 | --- | --- |
 | Body text contrast | 4.5:1 (large text ≥ 24px, or ≥ 18.66px bold: 3:1) |
+| Contrast per theme | Every threshold applies **separately in light and dark**, for every state (default, selected, unselected, disabled, placeholder). See the theming reference. |
 | Non-text contrast (input borders, icons, focus rings) | 3:1 against adjacent colors |
 | Target size | AA minimum 24×24 CSS px (or enough spacing); AAA/enhanced 44×44. Platform: iOS 44pt, Android 48dp |
 | Focus | Visible indicator; focused element not fully hidden by sticky headers/footers |

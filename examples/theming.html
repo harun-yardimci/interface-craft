@@ -1,0 +1,97 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.tri { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.col { background: var(--panel); border-radius: 20px; box-shadow: var(--shadow-border); padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+.mode { font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 8px; letter-spacing: 0; text-transform: none; }
+.app { border-radius: 14px; padding: 22px 16px; min-height: 420px; display: flex; justify-content: center; align-items: center; position: relative; }
+.app.dark { background: #0b1220; }
+.app.light { background: #eef2f7; }
+.sheet { width: 100%; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; position: relative; }
+.bar { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 650; }
+.x { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; }
+.lab { font-size: 11.5px; font-weight: 650; margin-top: 4px; }
+.chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.c { height: 30px; border-radius: 8px; font-size: 12.5px; font-weight: 600; display: grid; place-items: center; }
+.cta { height: 38px; border-radius: 10px; background: #2563eb; color: #fff; font-size: 13.5px; font-weight: 650; display: grid; place-items: center; margin-top: 4px; }
+/* BEFORE: fixed light surfaces + adaptive (dark-mode = light) text */
+.bad .sheet { background: #f8fafc; color: #0f172a; }
+.bad .x { background: #fff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+.bad .lab { color: #f1f5f9; }
+.bad .c { background: #fff; border: 1px solid #e2e8f0; color: #f1f5f9; }
+.bad .c.on { background: #2563eb; border-color: #2563eb; color: #fff; }
+/* AFTER dark */
+.gd .sheet { background: #111a2e; color: #f1f5f9; box-shadow: 0 0 0 1px rgba(255,255,255,.08); }
+.gd .x { background: rgba(255,255,255,.08); color: #f1f5f9; }
+.gd .lab { color: #94a3b8; }
+.gd .c { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: #e2e8f0; }
+.gd .c.on { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+/* AFTER light */
+.gl .sheet { background: #fff; color: #0f172a; box-shadow: var(--shadow-border); }
+.gl .x { background: #f1f5f9; color: #0f172a; }
+.gl .lab { color: #64748b; }
+.gl .c { background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; }
+.gl .c.on { background: #2563eb; border-color: #2563eb; color: #fff; }
+.code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; overflow: hidden; background: #f4f4f5; border-radius: 8px; padding: 10px 12px; line-height: 1.55; color: #3f3f46; white-space: pre; }
+.code .r { color: #dc2626; } .code .g { color: #16a34a; }
+</style></head><body>
+<div class="tri">
+  <section class="col before-side">
+    <span class="tag before">Before <span class="mode">dark mode</span></span>
+    <div class="app dark bad"><div class="sheet">
+      <span class="pin" style="left:-11px;top:48px">1</span>
+      <span class="pin" style="right:-11px;top:86px">2</span>
+      <div class="bar"><span class="x">✕</span>Filters<span class="x" style="width:auto;padding:0 10px;border-radius:999px;color:#2563eb">Reset</span></div>
+      <div class="lab">Grade</div>
+      <div class="chips"><span class="c on">All</span><span class="c">5</span><span class="c">6</span><span class="c">7</span><span class="c">8</span><span class="c">9</span></div>
+      <div class="lab">Subject</div>
+      <div class="chips"><span class="c on">All</span><span class="c">Math</span><span class="c">Physics</span><span class="c">Biology</span><span class="c">History</span></div>
+      <div class="cta">Show 13 results</div>
+    </div></div>
+    <div class="code"><span class="r">.background(Color(hex: "F8FAFC"))</span>  // fixed
+<span class="r">.background(Color.white)</span>          // fixed
+.foregroundStyle(Theme.ink)        // adaptive</div>
+    <ul class="notes">
+      <li><span class="num">1</span>The sheet and chips use fixed light colors, so they stay light in dark mode.</li>
+      <li><span class="num">2</span>The text uses an adaptive token that turns light in dark mode: white on white, so labels and chips disappear.</li>
+    </ul>
+  </section>
+  <section class="col after-side">
+    <span class="tag after">After <span class="mode">dark mode</span></span>
+    <div class="app dark gd"><div class="sheet">
+      <div class="bar"><span class="x">✕</span>Filters<span class="x" style="width:auto;padding:0 10px;border-radius:999px;color:#93c5fd">Reset</span></div>
+      <div class="lab">Grade</div>
+      <div class="chips"><span class="c on">All</span><span class="c">5</span><span class="c">6</span><span class="c">7</span><span class="c">8</span><span class="c">9</span></div>
+      <div class="lab">Subject</div>
+      <div class="chips"><span class="c on">All</span><span class="c">Math</span><span class="c">Physics</span><span class="c">Biology</span><span class="c">History</span></div>
+      <div class="cta">Show 13 results</div>
+    </div></div>
+    <div class="code"><span class="g">.background(Theme.surface)</span>   // adaptive
+<span class="g">.background(Theme.chip)</span>      // adaptive
+.foregroundStyle(Theme.ink)   // adaptive</div>
+    <ul class="notes">
+      <li><span class="num">1</span>The background and text come from the same theme source, so they always pair.</li>
+      <li><span class="num">2</span>Every chip state is checked for contrast in this theme.</li>
+    </ul>
+  </section>
+  <section class="col after-side">
+    <span class="tag after">After <span class="mode">light mode</span></span>
+    <div class="app light gl"><div class="sheet">
+      <div class="bar"><span class="x">✕</span>Filters<span class="x" style="width:auto;padding:0 10px;border-radius:999px;color:#2563eb">Reset</span></div>
+      <div class="lab">Grade</div>
+      <div class="chips"><span class="c on">All</span><span class="c">5</span><span class="c">6</span><span class="c">7</span><span class="c">8</span><span class="c">9</span></div>
+      <div class="lab">Subject</div>
+      <div class="chips"><span class="c on">All</span><span class="c">Math</span><span class="c">Physics</span><span class="c">Biology</span><span class="c">History</span></div>
+      <div class="cta">Show 13 results</div>
+    </div></div>
+    <div class="code">$ python3 scripts/theme_audit.py App/
+<span class="r">[HIGH] mix  FilterSheet.swift:120</span>
+  Fixed background next to adaptive
+  foreground (Theme.ink)</div>
+    <ul class="notes">
+      <li><span class="num">1</span>The same screen is rendered in both themes, overlays included.</li>
+      <li><span class="num">2</span>The static scan catches fixed/adaptive mixes before a user sees them.</li>
+    </ul>
+  </section>
+</div>
+</body></html>
