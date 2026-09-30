@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "interface-craft",
+  "description": "Interface Craft agent skill",
+  "owner": {
+    "name": "Harun Yardimci",
+    "url": "https://harun-yardimci.github.io"
+  },
+  "plugins": [
+    {
+      "name": "interface-craft",
+      "description": "Review, improve, or build interfaces across task flow, microcopy, system states, accessibility and visual polish.",
+      "version": "1.0.0",
+      "source": "./",
+      "category": "design"
+    }
+  ]
+}

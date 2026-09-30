@@ -1,0 +1,4 @@
+interface:
+  display_name: "Interface Craft"
+  short_description: "Improve usability, microcopy, and visual craft"
+  default_prompt: "Use $interface-craft to improve this interface while preserving its design language."

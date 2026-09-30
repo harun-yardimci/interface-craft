@@ -1,0 +1,73 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.card { width: 380px; background: #fff; border-radius: 14px; box-shadow: var(--shadow-border); padding: 28px; display: flex; flex-direction: column; gap: 14px; position: relative; }
+h3 { font-size: 20px; font-weight: 650; }
+.sub { font-size: 14px; color: var(--muted); margin-top: -8px; }
+.in { height: 44px; border: 1px solid #d4d4d8; border-radius: 8px; padding: 0 12px; display: flex; align-items: center; font-size: 15px; color: #a1a1aa; }
+.in.filled { color: var(--ink); }
+.in.err { border-color: var(--bad); box-shadow: 0 0 0 3px rgba(220,38,38,.12); }
+label { font-size: 14px; font-weight: 550; display: block; margin-bottom: 6px; }
+.hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.ferr { font-size: 13px; color: var(--bad); margin-top: 6px; display: flex; gap: 6px; align-items: flex-start; }
+.banner { background: var(--bad-soft); color: var(--bad); font-size: 13px; border-radius: 6px; padding: 8px 10px; }
+.row { display: flex; gap: 10px; }
+.btn { flex: 1; height: 44px; border-radius: 8px; font-size: 15px; font-weight: 600; display: grid; place-items: center; }
+.b-blue { background: var(--accent); color: #fff; }
+.b-gray { background: #52525b; color: #fff; }
+.b-primary { flex: none; background: #18181b; color: #fff; display: flex; gap: 10px; justify-content: center; align-items: center; opacity: .85; }
+.spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; }
+.tiny { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.tiny i { width: 11px; height: 11px; border: 1px solid #a1a1aa; display: inline-block; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.check i { width: 22px; height: 22px; border-radius: 6px; background: #18181b; display: grid; place-items: center; color: #fff; font-style: normal; font-size: 14px; }
+.link { font-size: 14px; text-align: center; color: var(--muted); }
+.link b { color: var(--ink); font-weight: 600; }
+</style></head><body>
+<div class="compare">
+  <section class="side before-side">
+    <span class="tag before">Before</span>
+    <div class="stage">
+      <div class="card">
+        <span class="pin" style="left:-11px;top:70px">2</span>
+        <span class="pin" style="left:-11px;top:128px">1</span>
+        <span class="pin" style="left:-11px;top:236px">4</span>
+        <span class="pin" style="right:-11px;top:280px">3</span>
+        <h3>Sign up</h3>
+        <div class="banner">Invalid input.</div>
+        <div class="in filled">jane@example.com</div>
+        <div class="in filled">••••••</div>
+        <div class="tiny"><i></i> I accept the terms</div>
+        <div class="row"><div class="btn b-gray">Cancel</div><div class="btn b-blue">Submit</div></div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>Placeholder-only fields: once filled, nothing says what each field is.</li>
+      <li><span class="num">2</span>“Invalid input” names no field and no fix.</li>
+      <li><span class="num">3</span>Two equally heavy buttons compete; “Submit” is vague. It stays tappable while pending, so repeat taps send repeat requests.</li>
+      <li><span class="num">4</span>11px checkbox: a hard target to hit, especially on touch.</li>
+    </ul>
+  </section>
+  <section class="side after-side">
+    <span class="tag after">After</span>
+    <div class="stage">
+      <div class="card">
+        <h3>Create your account</h3>
+        <p class="sub">Takes less than a minute.</p>
+        <div><label>Email</label><div class="in filled">jane@example.com</div></div>
+        <div><label>Password</label><div class="in filled err">••••••</div>
+          <div class="ferr">⚠︎ Use at least 8 characters. You have 6.</div></div>
+        <div class="check"><i>✓</i> I accept the <u>terms</u></div>
+        <div class="btn b-primary"><span class="spin"></span>Creating account…</div>
+        <div class="link">Already have an account? <b>Sign in</b></div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>Persistent labels stay visible; placeholders are optional examples.</li>
+      <li><span class="num">2</span>The error sits on the field, says what to fix, and uses an icon as well as color.</li>
+      <li><span class="num">3</span>One clear primary action named for what it does. A visible pending state cuts down repeat submits (backend idempotency still needs checking).</li>
+      <li><span class="num">4</span>A larger checkbox, and the whole label row is clickable.</li>
+    </ul>
+  </section>
+</div>
+</body></html>

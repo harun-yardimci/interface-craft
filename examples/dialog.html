@@ -1,0 +1,52 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.stage { flex-direction: column; gap: 22px; }
+.dlg { width: 400px; background: #fff; border-radius: 16px; box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 12px 32px -8px rgba(0,0,0,.18); padding: 24px; display: flex; flex-direction: column; gap: 10px; position: relative; }
+.dlg h4 { font-size: 18px; font-weight: 650; }
+.dlg p { font-size: 14.5px; color: #52525b; line-height: 1.5; }
+.acts { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+.b { height: 40px; padding: 0 18px; border-radius: 8px; font-size: 14.5px; font-weight: 600; display: grid; place-items: center; }
+.b-blue { background: var(--accent); color: #fff; }
+.b-plain { background: #f4f4f5; color: var(--ink); }
+.b-red { background: var(--bad); color: #fff; }
+.toast { background: #18181b; color: #fff; border-radius: 10px; padding: 12px 16px; font-size: 14px; display: flex; gap: 18px; align-items: center; }
+.toast b { color: #93c5fd; }
+.or { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+</style></head><body>
+<div class="compare">
+  <section class="side before-side">
+    <span class="tag before">Before</span>
+    <div class="stage">
+      <div class="dlg">
+        <span class="pin" style="left:-11px;top:22px">1</span>
+        <span class="pin" style="right:-11px;bottom:24px">2</span>
+        <h4>Are you sure?</h4>
+        <p>This action cannot be undone.</p>
+        <div class="acts"><div class="b b-plain">No</div><div class="b b-blue">Yes</div></div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>Doesn't say what will be deleted or how much. Users learn to click through.</li>
+      <li><span class="num">2</span>“Yes / No” only makes sense after re-reading the question, and the destructive choice is styled like a safe one.</li>
+    </ul>
+  </section>
+  <section class="side after-side">
+    <span class="tag after">After</span>
+    <div class="stage">
+      <div class="dlg">
+        <h4>Delete 3 invoices?</h4>
+        <p>INV-1042, INV-1043 and INV-1051 will be permanently deleted. This can't be undone.</p>
+        <div class="acts"><div class="b b-plain">Cancel</div><div class="b b-red">Delete invoices</div></div>
+      </div>
+      <span class="or">or, if deletion is reversible</span>
+      <div class="toast">3 invoices moved to Trash <b>Undo</b></div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>The title and body state the scope and the consequence.</li>
+      <li><span class="num">2</span>The button names the action (“Delete invoices”) and is styled as destructive.</li>
+      <li><span class="num">3</span>When the action can be reversed, an Undo toast interrupts less than a confirmation dialog.</li>
+    </ul>
+  </section>
+</div>
+</body></html>

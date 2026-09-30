@@ -1,0 +1,41 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.stage { flex-direction: column; gap: 14px; align-items: stretch; padding: 24px; }
+.st { background: #fff; border-radius: 12px; box-shadow: var(--shadow-border); padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+.ctx { font-size: 11.5px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.st h5 { font-size: 15.5px; font-weight: 650; }
+.st p { font-size: 14px; color: #52525b; }
+.st .gray { color: #a1a1aa; font-size: 15px; padding: 10px 0; text-align: center; }
+.cta { align-self: flex-start; margin-top: 6px; height: 34px; padding: 0 14px; border-radius: 8px; font-size: 13.5px; font-weight: 600; display: grid; place-items: center; background: #18181b; color: #fff; }
+.cta.ghost { background: #f4f4f5; color: var(--ink); }
+</style></head><body>
+<div class="compare">
+  <section class="side before-side">
+    <span class="tag before">Before</span>
+    <div class="stage">
+      <div class="st"><span class="ctx">New account</span><div class="gray">No data</div></div>
+      <div class="st"><span class="ctx">Search “acme”</span><div class="gray">No data</div></div>
+      <div class="st"><span class="ctx">Network failure</span><div class="gray">No data</div></div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>Three different situations show the same message.</li>
+      <li><span class="num">2</span>A failed load looks like an empty account, so users may think their data is gone.</li>
+      <li><span class="num">3</span>None of them offers a next step.</li>
+    </ul>
+  </section>
+  <section class="side after-side">
+    <span class="tag after">After</span>
+    <div class="stage">
+      <div class="st"><span class="ctx">New account</span><h5>No invoices yet</h5><p>Invoices you create or import will show up here.</p><div class="cta">Create invoice</div></div>
+      <div class="st"><span class="ctx">Search “acme”</span><h5>No invoices match “acme”</h5><p>Try a different name or clear the filters.</p><div class="cta ghost">Clear filters</div></div>
+      <div class="st"><span class="ctx">Network failure</span><h5>Couldn't load invoices</h5><p>Check your connection and try again.</p><div class="cta ghost">Try again</div></div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>Each state names what actually happened.</li>
+      <li><span class="num">2</span>A failure is shown as a failure and offers retry.</li>
+      <li><span class="num">3</span>Every state gives the one relevant next action.</li>
+    </ul>
+  </section>
+</div>
+</body></html>

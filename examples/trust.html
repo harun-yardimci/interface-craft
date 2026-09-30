@@ -1,0 +1,56 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.pw { width: 360px; background: #fff; border-radius: 18px; box-shadow: var(--shadow-border); padding: 26px; display: flex; flex-direction: column; gap: 12px; text-align: center; position: relative; }
+.pw h4 { font-size: 21px; font-weight: 700; }
+.urg { background: #fff7ed; color: #c2410c; font-weight: 700; font-size: 14px; border-radius: 8px; padding: 8px; }
+.big { height: 48px; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; display: grid; place-items: center; }
+.big.dark { background: #18181b; }
+.fine { font-size: 9.5px; color: #d4d4d8; }
+.shame { font-size: 12px; color: #a1a1aa; text-decoration: underline; }
+.price { font-size: 14.5px; color: #3f3f46; line-height: 1.5; }
+.price b { color: var(--ink); }
+.later { height: 44px; border-radius: 10px; background: #f4f4f5; font-weight: 600; font-size: 15px; display: grid; place-items: center; }
+ul.feat { list-style: none; padding: 0; text-align: left; font-size: 14px; display: flex; flex-direction: column; gap: 6px; color: #3f3f46; }
+</style></head><body>
+<div class="compare">
+  <section class="side before-side">
+    <span class="tag before">Before</span>
+    <div class="stage">
+      <div class="pw">
+        <span class="pin" style="left:-11px;top:70px">1</span>
+        <span class="pin" style="left:-11px;top:229px">2</span>
+        <span class="pin" style="right:-11px;bottom:26px">3</span>
+        <h4>Go Pro 🚀</h4>
+        <div class="urg">⏰ Offer ends in 01:59!</div>
+        <ul class="feat"><li>✓ Unlimited projects</li><li>✓ Export to PDF</li></ul>
+        <div class="big">Start FREE trial</div>
+        <div class="fine">$4.99/mo after trial, billed automatically. Terms apply.</div>
+        <div class="shame">No thanks, I don't like saving money</div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>A fake countdown adds pressure that has nothing to do with the decision.</li>
+      <li><span class="num">2</span>Price and auto-renewal are in low-contrast fine print.</li>
+      <li><span class="num">3</span>The opt-out is written to make the user feel guilty.</li>
+    </ul>
+  </section>
+  <section class="side after-side">
+    <span class="tag after">After</span>
+    <div class="stage">
+      <div class="pw">
+        <h4>Try Pro free for 7 days</h4>
+        <ul class="feat"><li>✓ Unlimited projects</li><li>✓ Export to PDF</li></ul>
+        <p class="price">Then <b>$4.99/month</b>, renews automatically.<br>Cancel anytime in Settings.</p>
+        <div class="big dark">Start free trial</div>
+        <div class="later">Not now</div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>No invented urgency. The value of Pro makes the case.</li>
+      <li><span class="num">2</span>Price, renewal and cancellation are readable before the user commits.</li>
+      <li><span class="num">3</span>“Not now” is a neutral, visible way out.</li>
+    </ul>
+  </section>
+</div>
+</body></html>

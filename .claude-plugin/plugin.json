@@ -1,0 +1,13 @@
+{
+  "name": "interface-craft",
+  "version": "1.0.0",
+  "description": "Review, improve, or build interfaces across task flow, microcopy, system states, accessibility and visual polish.",
+  "author": {
+    "name": "Harun Yardimci",
+    "url": "https://harun-yardimci.github.io"
+  },
+  "homepage": "https://github.com/harun-yardimci/interface-craft",
+  "repository": "https://github.com/harun-yardimci/interface-craft",
+  "license": "MIT",
+  "keywords": ["ux", "ui", "design-review", "microcopy", "accessibility", "usability", "skill"]
+}

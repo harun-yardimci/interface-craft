@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+body { padding: 0; width: 1280px; background: #0b0b0f; }
+.hero { height: 520px; padding: 64px 72px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center;
+  background: radial-gradient(900px 500px at 85% 20%, rgba(99,102,241,.28), transparent 60%), radial-gradient(700px 400px at 10% 110%, rgba(22,163,74,.18), transparent 60%), #0b0b0f; color: #fafafa; }
+.kicker { font-size: 14px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #a5b4fc; }
+h1 { font-size: 64px; font-weight: 750; letter-spacing: -.03em; margin: 12px 0 16px; }
+.lead { font-size: 21px; line-height: 1.45; color: #d4d4d8; max-width: 520px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.chip { font-size: 14px; padding: 7px 13px; border-radius: 999px; background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); color: #e4e4e7; }
+.cards { position: relative; height: 380px; }
+.m { position: absolute; width: 330px; background: #fff; color: #18181b; border-radius: 16px; padding: 20px; box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 24px 60px -12px rgba(0,0,0,.6); display: flex; flex-direction: column; gap: 10px; }
+.m.b { left: 0; top: -6px; transform: rotate(-4deg); opacity: .9; }
+.m.a { right: 0; top: 196px; }
+.t { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; align-self: flex-start; }
+.t.b { background: #fef2f2; color: #dc2626; } .t.a { background: #f0fdf4; color: #16a34a; }
+.m h4 { font-size: 17px; }
+.m p { font-size: 13.5px; color: #52525b; line-height: 1.45; }
+.acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.bt { height: 34px; padding: 0 14px; border-radius: 8px; font-size: 13.5px; font-weight: 600; display: grid; place-items: center; background: #f4f4f5; }
+.bt.blue { background: #2563eb; color: #fff; } .bt.red { background: #dc2626; color: #fff; }
+</style></head><body>
+<div class="hero">
+  <div>
+    <div class="kicker">Agent skill · Claude Code · Codex</div>
+    <h1>Interface Craft</h1>
+    <p class="lead">Teaches your coding agent to review and improve interfaces like a senior product designer: clear flows, honest copy, real states, accessibility first, and the small visual details on top.</p>
+    <div class="chips"><span class="chip">Task flow</span><span class="chip">Decision load</span><span class="chip">Microcopy</span><span class="chip">Interaction</span><span class="chip">System states</span><span class="chip">Accessibility</span><span class="chip">Visual craft</span></div>
+  </div>
+  <div class="cards">
+    <div class="m b"><span class="t b">Before</span><h4>Are you sure?</h4><p>This action cannot be undone.</p><div class="acts"><span class="bt">No</span><span class="bt blue">Yes</span></div></div>
+    <div class="m a"><span class="t a">After</span><h4>Delete 3 invoices?</h4><p>INV-1042, INV-1043 and INV-1051 will be permanently deleted. This can't be undone.</p><div class="acts"><span class="bt">Cancel</span><span class="bt red">Delete invoices</span></div></div>
+  </div>
+</div>
+</body></html>

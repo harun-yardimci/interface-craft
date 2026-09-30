@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.cell { background: #fff; border-radius: 20px; box-shadow: var(--shadow-border); padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.cell h6 { font-size: 15px; font-weight: 650; }
+.cell .rule { font-size: 13px; color: var(--muted); margin-top: -8px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.demo { background: #fafafa; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.lab { font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.lab.b { color: var(--bad); } .lab.a { color: var(--good); }
+/* radius */
+.outer { background: #e4e4e7; padding: 10px; width: 150px; }
+.inner { background: #18181b; height: 60px; }
+/* border vs shadow */
+.surf { width: 160px; height: 80px; background: #fff; border-radius: 12px; }
+.bdr { border: 1.5px solid #a1a1aa; }
+.shd { box-shadow: var(--shadow-border); }
+.tint { background: linear-gradient(135deg, #e0e7ff, #fce7f3); padding: 14px; border-radius: 14px; }
+/* numbers */
+.nums { font-size: 26px; font-weight: 650; line-height: 1.25; text-align: right; font-family: -apple-system, "SF Pro Display", "Inter", sans-serif; }
+.prop { font-variant-numeric: proportional-nums; }
+.tab { font-variant-numeric: tabular-nums; }
+/* play */
+.play { width: 72px; height: 72px; border-radius: 50%; background: #18181b; position: relative; }
+.play svg { position: absolute; top: 50%; left: 50%; }
+.guide { position: absolute; inset: 0; }
+.guide::before, .guide::after { content: ""; position: absolute; background: rgba(239,68,68,.55); }
+.guide::before { left: 50%; top: 6px; bottom: 6px; width: 1px; }
+.guide::after { top: 50%; left: 6px; right: 6px; height: 1px; }
+</style></head><body>
+<div class="grid">
+  <div class="cell"><h6>Concentric corners</h6><p class="rule">outer radius = inner radius + padding</p>
+    <div class="pair">
+      <div class="demo"><span class="lab b">Before</span><div class="outer" style="border-radius:14px"><div class="inner" style="border-radius:14px"></div></div><span class="caption">14px + 14px</span></div>
+      <div class="demo"><span class="lab a">After</span><div class="outer" style="border-radius:24px"><div class="inner" style="border-radius:14px"></div></div><span class="caption">24px = 14 + 10</span></div>
+    </div></div>
+  <div class="cell"><h6>Layered shadow instead of a hard border</h6><p class="rule">transparent layers adapt to any background</p>
+    <div class="pair">
+      <div class="demo"><span class="lab b">Before</span><div class="tint"><div class="surf bdr"></div></div><span class="caption">solid gray border</span></div>
+      <div class="demo"><span class="lab a">After</span><div class="tint"><div class="surf shd"></div></div><span class="caption">1px ring + lift + ambient</span></div>
+    </div></div>
+  <div class="cell"><h6>Tabular numbers for changing values</h6><p class="rule">equal-width digits keep counters and columns steady</p>
+    <div class="pair">
+      <div class="demo"><span class="lab b">Before</span><div class="nums prop">$1,111.11<br>$8,808.80</div><span class="caption">digits change width</span></div>
+      <div class="demo"><span class="lab a">After</span><div class="nums tab">$1,111.11<br>$8,808.80</div><span class="caption"><code>tabular-nums</code></span></div>
+    </div></div>
+  <div class="cell"><h6>Optical alignment</h6><p class="rule">asymmetric icons need a nudge toward their visual weight</p>
+    <div class="pair">
+      <div class="demo"><span class="lab b">Before</span><div class="play"><span class="guide"></span><svg width="24" height="28" viewBox="0 0 24 28" style="transform:translate(-12px,-14px)"><path d="M0 0 L24 14 L0 28 Z" fill="#fff"/></svg></div><span class="caption">box centered, looks left-heavy</span></div>
+      <div class="demo"><span class="lab a">After</span><div class="play"><span class="guide"></span><svg width="24" height="28" viewBox="0 0 24 28" style="transform:translate(-8px,-14px)"><path d="M0 0 L24 14 L0 28 Z" fill="#fff"/></svg></div><span class="caption">shifted 4px toward the point</span></div>
+    </div></div>
+</div>
+</body></html>
