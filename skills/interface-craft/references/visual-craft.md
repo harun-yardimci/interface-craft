@@ -48,6 +48,21 @@ In forced-colors / high-contrast mode shadows disappear - keep a transparent `ou
 | First render | No incidental mount animation: `AnimatePresence initial={false}`. Check it does not kill intentional entrances. |
 | Reduced motion | Under `prefers-reduced-motion: reduce`, drop translate/scale/blur; keep instant or opacity-only feedback. |
 
+## Repeated content: rows, grids, carousels
+Items shown side by side (cards in a carousel, grid cells, list rows with media) must share a **consistent shape** whatever their content. Heights that jump with title length, or a title truncated in one card while its neighbor is a line shorter, read as broken layout.
+
+| Rule | Web | SwiftUI | Compose |
+| --- | --- | --- | --- |
+| Reserve text lines: a clamped title always takes N lines, even when shorter | `line-clamp: 2` + `min-height: calc(2 * 1lh)` (or `2lh`) | `.lineLimit(2, reservesSpace: true)` (iOS 16+; older: fixed `frame(height:)` from the font's line height) | `Text(maxLines = 2, minLines = 2, overflow = TextOverflow.Ellipsis)` |
+| Equal height in a row: stretch cards to the tallest | Grid `grid-auto-rows: 1fr`, or flex `align-items: stretch` + card `height: 100%; display: flex; flex-direction: column` | Non-lazy `HStack` + `.fixedSize(horizontal: false, vertical: true)` on the stack, `.frame(maxHeight: .infinity, alignment: .top)` on each card. `LazyHStack` can't measure siblings, so reserve lines instead | `Row(Modifier.height(IntrinsicSize.Min))` + `Modifier.fillMaxHeight()` on cards (non-lazy); `LazyRow`: reserve lines |
+| Fixed media ratio | `aspect-ratio: 16 / 10; object-fit: cover` | `.aspectRatio(16/10, contentMode: .fill).clipped()` | `Modifier.aspectRatio(16f / 10f)` + `ContentScale.Crop` |
+| Pin secondary content to the bottom | `margin-top: auto` on the footer | `Spacer(minLength: 0)` before the footer | `Spacer(Modifier.weight(1f))` |
+
+Guardrails:
+- **Truncation must not lose information.** The full title stays reachable: accessibility label, tooltip or detail view. Prefer shorter copy over heavy clamping.
+- **Accessibility text sizes win.** At large Dynamic Type or 200% zoom, allow more lines or switch to a vertical layout. Never clip text to preserve equal heights.
+- **Test with extreme content:** the shortest and longest real titles side by side, a missing image, a long translation (Turkish and German run long), and the largest text size. Sample data with similar-length titles hides this bug.
+
 ## Performance
 - Never `transition: all`. Name properties: `transition-property: scale, opacity`. Tailwind: `transition-transform` or `transition-[scale,opacity,filter]`.
 - `will-change` only for `transform`/`opacity`/`filter`, only after seeing first-frame stutter. Never `will-change: all`.
@@ -72,4 +87,4 @@ Several APIs below need recent OS or library versions (e.g. `ConcentricRectangle
 Font smoothing, `text-wrap`, `will-change` and `transition-property` have no native equivalent - skip them on native.
 
 ## Checklist before reporting visual work
-Hover, active, focus-visible, disabled and selected states render without layout shift; both themes checked; narrow and wide widths checked; long/translated text does not clip. Report only what you actually inspected.
+Hover, active, focus-visible, disabled and selected states render without layout shift; both themes checked; narrow and wide widths checked; long/translated text does not clip; repeated items (cards, grid cells, rows) keep equal height and media ratio with the shortest and longest real content side by side. Report only what you actually inspected.

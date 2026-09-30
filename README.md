@@ -79,6 +79,12 @@ These mockups show the kind of changes the skill proposes. Their HTML sources ar
 
 > **Why:** the most common theme bug is a *fixed* background (`Color.white`, `#F8FAFC`, `bg-white`) paired with an *adaptive* text color that turns light in dark mode, leaving white text on a white surface. The skill checks that background and foreground come from the same theme source. It renders the screen and its overlays in **both** themes, and ships a static scanner, [`theme_audit.py`](skills/interface-craft/scripts/theme_audit.py), that flags these mixes in SwiftUI, Compose and Tailwind before users see them. See [Theme audit](#theme-audit-catch-lightdark-bugs-before-users-do) for usage and example output.
 
+### 7. Repeated content: equal cards in rows and carousels
+
+![Carousel before and after: card heights follow title length and some titles truncate while others run to three lines; after, every title reserves two lines, the image ratio is fixed and the meta row is pinned to the bottom, so all cards share one height](assets/equal-cards.png)
+
+> **Why:** sample data with similar-length titles hides this bug until real content arrives. For carousels, grids and lists the skill renders the **shortest and longest real items side by side**, then applies reserved text lines (`lineLimit(2, reservesSpace: true)`, `line-clamp` + `min-height`, `minLines`), stretch-to-tallest rows, fixed media ratios and a bottom-pinned meta row. Truncation must not hide information: the full title stays in the accessibility label. At large text sizes, readability wins over equal heights.
+
 ---
 
 ## What the agent reports
@@ -124,7 +130,7 @@ It then lists the **checks it actually ran** (browser preview, keyboard pass, bo
 <tr><td><b>System states</b></td><td>Empty vs no-results vs failed vs loading vs partial; success claimed before it is confirmed; lost input after an error</td></tr>
 <tr><td><b>Accessibility</b></td><td>Contrast (4.5:1 text, 3:1 non-text), target size, focus order and visibility, modal focus trap and return, labels and errors linked to fields, reduced motion, screen-reader names</td></tr>
 <tr><td><b>Light / dark consistency</b><br><sub>cross-cutting</sub></td><td>Fixed backgrounds with adaptive text (or the reverse), sheets and menus that stay light in dark mode, color assets without a dark variant, local color-scheme overrides, missing <code>color-scheme</code> on the web, and contrast checked separately in each theme</td></tr>
-<tr><td><b>Visual craft</b></td><td>Concentric radius, layered shadows vs borders, tabular numbers, optical alignment, text wrapping, interruptible motion, <code>transition: all</code>, layout shift</td></tr>
+<tr><td><b>Visual craft</b></td><td>Equal-height cards and reserved text lines in rows, grids and carousels; Concentric radius, layered shadows vs borders, tabular numbers, optical alignment, text wrapping, interruptible motion, <code>transition: all</code>, layout shift</td></tr>
 </table>
 
 <details>
@@ -275,6 +281,7 @@ These rules come from UX writing and ethical-design practice and are applied thr
 - **Honest state:** never claim success before it's confirmed. Keep input after recoverable errors. Prefer undo over routine confirmation dialogs, and confirm costly irreversible actions with their scope.
 - **No dark patterns:** no fake urgency or countdowns, hidden costs or renewals, guilt-based opt-outs (“confirmshaming”), fake progress, or pressure tactics.
 - **Honest reporting:** only checks actually run are reported. Hypotheses are labeled. No invented conversion numbers, and an expert review is never presented as user research.
+- **Repeated content:** items shown side by side share one shape. Text lines are reserved, rows stretch to the tallest item, media ratios are fixed, and the result is tested with the shortest and longest real content.
 - **Priority order:** blockers and accessibility, then errors, ambiguity and decision load, then wording and hierarchy, then polish.
 - **Conflict resolution:** `user intent > accessibility > platform conventions > existing design system > aesthetics`.
 
