@@ -33,6 +33,7 @@ The full list of principles and sources is in [Foundations: what we follow](#fou
 - [What it will not do](#what-it-will-not-do)
 - [Install](#install)
 - [Usage](#usage)
+- [Theme audit](#theme-audit-catch-lightdark-bugs-before-users-do)
 - [Repository layout](#repository-layout)
 - [Credits and license](#credits-and-license)
 
@@ -76,7 +77,7 @@ These mockups show the kind of changes the skill proposes. Their HTML sources ar
 
 ![Filters sheet in dark mode: fixed light sheet and chips with adaptive text make labels invisible; after, surfaces use adaptive tokens and the screen is readable in both dark and light mode; a static scan flags the mix](assets/theming.png)
 
-> **Why:** the most common theme bug is a *fixed* background (`Color.white`, `#F8FAFC`, `bg-white`) paired with an *adaptive* text color that turns light in dark mode, leaving white text on a white surface. The skill checks that background and foreground come from the same theme source. It renders the screen and its overlays in **both** themes, and ships a static scanner, [`theme_audit.py`](skills/interface-craft/scripts/theme_audit.py), that flags these mixes in SwiftUI, Compose and Tailwind before users see them.
+> **Why:** the most common theme bug is a *fixed* background (`Color.white`, `#F8FAFC`, `bg-white`) paired with an *adaptive* text color that turns light in dark mode, leaving white text on a white surface. The skill checks that background and foreground come from the same theme source. It renders the screen and its overlays in **both** themes, and ships a static scanner, [`theme_audit.py`](skills/interface-craft/scripts/theme_audit.py), that flags these mixes in SwiftUI, Compose and Tailwind before users see them. See [Theme audit](#theme-audit-catch-lightdark-bugs-before-users-do) for usage and example output.
 
 ---
 
@@ -337,6 +338,74 @@ Bu ekranı incele, önce/sonra tablo ile raporla
 ```
 
 For narrow tasks it steps aside when a more specific skill is installed. For example, it defers to a dedicated UX-writing skill for copy-only work or an accessibility-audit skill for a WCAG audit. When no such skill is installed, it handles the task with only the relevant reference.
+
+---
+
+## Theme audit: catch light/dark bugs before users do
+
+The skill includes a dependency-free static scanner for the most common theme bug: a **fixed** background next to an **adaptive** foreground. The agent runs it automatically during reviews, and you can also run it yourself or in CI:
+
+```bash
+python3 skills/interface-craft/scripts/theme_audit.py path/to/your/app
+```
+
+The scanner flags code like this, which looks fine in light mode and turns into white-on-white text in dark mode:
+
+```swift
+ScrollView { /* chips */ }
+    .background(Color(hex: "F8FAFC"))          // fixed: stays light in dark mode
+
+Text(title)
+    .foregroundStyle(isSelected ? .white : Theme.ink)   // adaptive: turns light in dark mode
+    .background(
+        isSelected ? Theme.cobalt : Color.white,        // fixed
+        in: RoundedRectangle(cornerRadius: 10)
+    )
+```
+
+```html
+<div class="bg-white text-foreground">…</div>   <!-- fixed bg + theme text token -->
+```
+
+Example output:
+
+```text
+[HIGH] asset-no-dark      A.xcassets/Brand.colorset
+       Color set has no Dark appearance
+[HIGH] mix                FilterSheet.swift:4
+       Fixed background next to adaptive foreground (isSelected ? .white : Theme.ink): text likely vanishes in one theme
+       > .background(Color(hex: "F8FAFC"))
+[HIGH] mix                FilterSheet.swift:9
+       Fixed background next to adaptive foreground (isSelected ? .white : Theme.ink): text likely vanishes in one theme
+       > .background( isSelected ? Theme.cobalt : Color.white, in: RoundedRectangle(cornerRadius: 10) )
+[HIGH] tw-mix             web/Card.tsx:1
+       Fixed Tailwind background with a theme text token: text likely vanishes in one theme
+       > <div class="bg-white text-foreground p-4">x</div>
+[WARN] fixed-bg           BrandButton.swift:3
+       Opaque fixed background; its foreground must be fixed too, or use an adaptive surface token
+[WARN] web-no-color-scheme .
+       No `color-scheme` declaration found: native inputs and scrollbars may stay light in dark mode
+```
+
+The fix is to take the background and foreground from the same theme source:
+
+```swift
+.background(Theme.surface)                                          // adaptive
+.background(isSelected ? Theme.cobalt : Theme.chip, in: ...)        // adaptive
+```
+
+| Rule | Severity | What it catches |
+|---|---|---|
+| `mix` | high | SwiftUI: an opaque fixed background (`Color.white`, `Color(hex:)`, `.black`) within a few lines of an adaptive foreground (`.primary`, `.secondary`, project tokens); multi-line modifiers included |
+| `tw-mix` | high | Tailwind: `bg-white` / `bg-zinc-100`… on the same element as a theme text token (`text-foreground`, `text-muted-foreground`) |
+| `asset-no-dark` | high | Xcode color sets with no Dark appearance |
+| `fixed-bg` | warn | Opaque fixed backgrounds, which are fine for brand surfaces when the foreground is fixed too |
+| `scheme-override` | warn | `.preferredColorScheme`, `.environment(\.colorScheme, .light)`, `overrideUserInterfaceStyle`, forced Compose themes |
+| `tw-no-dark` | warn | Fixed Tailwind colors without a `dark:` variant |
+| `android-no-night` · `web-no-color-scheme` | warn | Missing `values-night/` resources; missing CSS `color-scheme` |
+| `fixed-stroke` · `inline-color` · `fixed-color` (CSS) | info | Literal border or inline colors that bypass theme tokens |
+
+Scrims and shadows (`Color.black.opacity(0.4)`, `.shadow(color: .black…)`) are intentionally ignored. Treat hits as **leads, not verdicts**: the agent confirms each one by rendering the screen, including its sheets, menus and every chip state, in both themes. Compose detection is file-level for now, so expect more false positives there than in SwiftUI or Tailwind.
 
 ---
 
