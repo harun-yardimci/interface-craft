@@ -34,6 +34,7 @@ The full list of principles and sources is in [Foundations: what we follow](#fou
 - [Install](#install)
 - [Usage](#usage)
 - [Theme audit](#theme-audit-catch-lightdark-bugs-before-users-do)
+- [Token audit](#token-audit-find-design-system-drift)
 - [Repository layout](#repository-layout)
 - [Credits and license](#credits-and-license)
 
@@ -85,6 +86,12 @@ These mockups show the kind of changes the skill proposes. Their HTML sources ar
 
 > **Why:** sample data with similar-length titles hides this bug until real content arrives. For carousels, grids and lists the skill renders the **shortest and longest real items side by side**, then applies reserved text lines (`lineLimit(2, reservesSpace: true)`, `line-clamp` + `min-height`, `minLines`), stretch-to-tallest rows, fixed media ratios and a bottom-pinned meta row. Truncation must not hide information: the full title stays in the accessibility label. At large text sizes, readability wins over equal heights.
 
+### 8. Layout resilience: keyboard, large text, slow networks
+
+![Three cases before and after: the Save button hidden under the keyboard vs a form that scrolls to keep it visible; at the largest text size a clipped title, truncated chips and a clipped button vs wrapping text and flowing chips; on a slow network a mismatched skeleton and a collapsed broken image vs a skeleton built from the real card and a same-ratio placeholder](assets/layout-resilience.png)
+
+> **Why:** these bugs rarely show up on the one simulator and sample data used during development. The skill checks the conditions real users hit: the smallest and largest widths, landscape and iPad, the keyboard open on every form, the largest text size, a slow network and a failed image. It names the condition behind each finding, because none of these settings show in a screenshot.
+
 ---
 
 ## What the agent reports
@@ -130,7 +137,8 @@ It then lists the **checks it actually ran** (browser preview, keyboard pass, bo
 <tr><td><b>System states</b></td><td>Empty vs no-results vs failed vs loading vs partial; success claimed before it is confirmed; lost input after an error</td></tr>
 <tr><td><b>Accessibility</b></td><td>Contrast (4.5:1 text, 3:1 non-text), target size, focus order and visibility, modal focus trap and return, labels and errors linked to fields, reduced motion, screen-reader names</td></tr>
 <tr><td><b>Light / dark consistency</b><br><sub>cross-cutting</sub></td><td>Fixed backgrounds with adaptive text (or the reverse), sheets and menus that stay light in dark mode, color assets without a dark variant, local color-scheme overrides, missing <code>color-scheme</code> on the web, and contrast checked separately in each theme</td></tr>
-<tr><td><b>Visual craft</b></td><td>Equal-height cards and reserved text lines in rows, grids and carousels; Concentric radius, layered shadows vs borders, tabular numbers, optical alignment, text wrapping, interruptible motion, <code>transition: all</code>, layout shift</td></tr>
+<tr><td><b>Layout resilience</b><br><sub>cross-cutting</sub></td><td>Safe areas, keyboard covering fields or actions, narrow (320px / iPhone SE) and wide (iPad, landscape, split view) layouts, clipped controls at large text sizes, extreme data, skeleton/content parity, layout shift, image fallbacks</td></tr>
+<tr><td><b>Visual craft</b></td><td>Design-token drift (sprawling font sizes, off-grid spacing, one-off radii, fonts that ignore Dynamic Type); equal-height cards and reserved text lines in rows, grids and carousels; Concentric radius, layered shadows vs borders, tabular numbers, optical alignment, text wrapping, interruptible motion, <code>transition: all</code>, layout shift</td></tr>
 </table>
 
 <details>
@@ -282,6 +290,7 @@ These rules come from UX writing and ethical-design practice and are applied thr
 - **No dark patterns:** no fake urgency or countdowns, hidden costs or renewals, guilt-based opt-outs (“confirmshaming”), fake progress, or pressure tactics.
 - **Honest reporting:** only checks actually run are reported. Hypotheses are labeled. No invented conversion numbers, and an expert review is never presented as user research.
 - **Repeated content:** items shown side by side share one shape. Text lines are reserved, rows stretch to the tallest item, media ratios are fixed, and the result is tested with the shortest and longest real content.
+- **Real conditions:** smallest and largest widths, keyboard open, largest text size, slow network and failed images are all checked. Every finding names the device, width, text size or network condition behind it.
 - **Priority order:** blockers and accessibility, then errors, ambiguity and decision load, then wording and hierarchy, then polish.
 - **Conflict resolution:** `user intent > accessibility > platform conventions > existing design system > aesthetics`.
 
@@ -341,6 +350,8 @@ The skill triggers automatically on broad interface requests. You can also call 
 /interface-craft improve the onboarding screens, keep the layout
 /interface-craft only fix the error and empty states on the invoices page
 /interface-craft audit dark mode / light mode consistency in apps/ios
+/interface-craft check the onboarding on iPhone SE with the keyboard open and at the largest text size
+/interface-craft why do our screens feel inconsistent? run the token audit on src/
 Bu ekranı incele, önce/sonra tablo ile raporla
 ```
 
@@ -416,6 +427,41 @@ Scrims and shadows (`Color.black.opacity(0.4)`, `.shadow(color: .black…)`) are
 
 ---
 
+## Token audit: find design-system drift
+
+A second scanner, [`token_audit.py`](skills/interface-craft/scripts/token_audit.py), explains the vague feeling that screens "don't quite match". It collects every literal font size, spacing value and corner radius in SwiftUI, Compose, CSS and Tailwind, and reports how far the code has drifted from a real scale:
+
+```bash
+python3 skills/interface-craft/scripts/token_audit.py path/to/your/app            # 4pt grid
+python3 skills/interface-craft/scripts/token_audit.py path/to/your/app --grid 2   # half-step systems
+```
+
+Example output:
+
+```text
+font       4 distinct literal values
+         11.5×1, 13×1, 15×2, 17×1
+
+spacing    5 distinct literal values
+         6×1, 8×1, 13×2, 14×1, 16×2
+
+radius     5 distinct literal values
+         7×1, 9×1, 10×1, 12×1, 14×1
+
+[WARN] fixed-font  3 × `.system(size:)` does not scale with Dynamic Type. Use text styles (.body, .headline) or a scaled custom font.
+       Card.swift:4  > Text("Title").font(.system(size: 17, weight: .semibold))
+[WARN] off-grid    3 spacing values not on the 4pt grid
+       Card.tsx:1  13  > <div class="p-[13px] text-[15px] rounded-[7px] gap-4">x</div>
+       Card.swift:9  14  > .padding(14)
+[INFO] one-off values (used once; likely drift from the scale):
+       radius      7  Card.tsx:1
+       radius      9  styles.css:2
+```
+
+The agent maps each literal to the project's **existing** tokens and text styles rather than inventing new ones. A healthy scale is small, typically ~6–8 text styles, ~6–10 spacing steps and ~3–5 radii. CSS custom-property definitions such as `--space-3: 12px` are treated as tokens and skipped.
+
+---
+
 ## Repository layout
 
 ```text
@@ -428,9 +474,11 @@ skills/interface-craft/
     ├── microcopy.md                 # patterns, before → after, localization
     ├── accessibility.md             # WCAG 2.2 AA thresholds and checks
     ├── theming.md                   # light/dark consistency: pairing rules, patterns, audit
+    ├── layout-resilience.md         # safe areas, keyboard, sizes, large text, loading & media
     └── visual-craft.md              # concrete values + SwiftUI/Compose equivalents
 skills/interface-craft/scripts/
-└── theme_audit.py                   # static scan for fixed-vs-adaptive color mixes
+├── theme_audit.py                   # static scan for fixed-vs-adaptive color mixes
+└── token_audit.py                   # static scan for font/spacing/radius drift
 .claude-plugin/                      # Claude Code plugin + marketplace manifests
 examples/                            # HTML sources of the README mockups
 assets/                              # rendered images

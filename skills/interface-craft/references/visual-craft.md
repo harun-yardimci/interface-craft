@@ -48,6 +48,13 @@ In forced-colors / high-contrast mode shadows disappear - keep a transparent `ou
 | First render | No incidental mount animation: `AnimatePresence initial={false}`. Check it does not kill intentional entrances. |
 | Reduced motion | Under `prefers-reduced-motion: reduce`, drop translate/scale/blur; keep instant or opacity-only feedback. |
 
+## Design-token consistency
+Screens feel "off" when each one invents its own sizes. Examples: 11.5, 13, 15 and 17pt text on one screen; `padding(14)` next to `padding(16)`; radii of 9, 10, 12 and 14.
+- Run `scripts/token_audit.py <ui-source-dir>`. It lists how many distinct literal font sizes, spacing values and radii the code uses, the spacing values off the grid (`--grid 4` by default, `--grid 2` for half-step systems), one-off values, and SwiftUI `.system(size:)` fonts that ignore Dynamic Type.
+- Map each literal to the **existing** token or text style (`AppTheme.Space.m`, `.font(.headline)`, `var(--space-3)`, `MaterialTheme.typography.titleMedium`). Add a new token only when a real gap is confirmed, never one per literal.
+- A healthy scale is small, typically ~6–8 text styles, ~6–10 spacing steps and ~3–5 radii. Literals inside the token definition file itself are expected.
+- Typography should scale with the user's text size: text styles or `Font.custom(_:size:relativeTo:)` on iOS, `sp` on Android, `rem` on the web.
+
 ## Repeated content: rows, grids, carousels
 Items shown side by side (cards in a carousel, grid cells, list rows with media) must share a **consistent shape** whatever their content. Heights that jump with title length, or a title truncated in one card while its neighbor is a line shorter, read as broken layout.
 

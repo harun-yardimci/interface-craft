@@ -1,0 +1,82 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.cases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.case { background: #fff; border-radius: 20px; box-shadow: var(--shadow-border); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.case h5 { font-size: 15.5px; font-weight: 700; }
+.case .cond { font-size: 12px; color: var(--muted); margin-top: -8px; }
+.pair { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; }
+.pair > div { min-width: 0; }
+.lab { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-align: center; margin-bottom: 6px; }
+.lab.b { color: var(--bad); } .lab.a { color: var(--good); }
+.phone { height: 300px; border-radius: 22px; background: #fff; box-shadow: 0 0 0 5px #18181b, 0 6px 16px -6px rgba(0,0,0,.35); overflow: hidden; position: relative; display: flex; flex-direction: column; margin: 5px; }
+.scr { padding: 14px 10px; display: flex; flex-direction: column; gap: 7px; flex: 1; overflow: hidden; }
+.h { font-size: 12.5px; font-weight: 700; }
+.fl { font-size: 9.5px; font-weight: 600; color: #52525b; }
+.in { height: 24px; border: 1px solid #d4d4d8; border-radius: 6px; font-size: 10px; display: flex; align-items: center; padding: 0 7px; color: #18181b; }
+.in.focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.2); }
+.btn { height: 28px; border-radius: 7px; background: #2563eb; color: #fff; font-size: 10.5px; font-weight: 700; display: grid; place-items: center; }
+.kb { height: 118px; background: #d1d5db; display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; padding: 6px 4px; flex: none; }
+.kb i { background: #fff; border-radius: 3px; height: 20px; }
+.over { position: absolute; left: 0; right: 0; bottom: 0; }
+/* large text */
+.xl .h { font-size: 19px; line-height: 1.15; }
+.chiprow { display: flex; gap: 5px; overflow: hidden; }
+.ch { height: 26px; border-radius: 13px; background: #f4f4f5; font-size: 13px; font-weight: 600; padding: 0 9px; display: flex; align-items: center; white-space: nowrap; }
+.ch.clip { overflow: hidden; text-overflow: ellipsis; max-width: 58px; }
+.chipwrap { display: flex; flex-wrap: wrap; gap: 5px; }
+.row { display: flex; gap: 7px; align-items: center; }
+.cut { height: 23px; overflow: hidden; }
+/* loading */
+.sk { background: #e4e4e7; border-radius: 5px; }
+.img { border-radius: 8px; }
+.ph { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); display: grid; place-items: center; color: #6366f1; font-weight: 700; font-size: 13px; }
+.broken { border: 1px dashed #d4d4d8; display: grid; place-items: center; font-size: 16px; color: #a1a1aa; height: 22px; }
+.t2 { font-size: 11px; font-weight: 650; }
+.m2 { font-size: 9.5px; color: #71717a; }
+.jump { position: absolute; right: 6px; top: 118px; background: var(--bad); color: #fff; font-size: 9px; font-weight: 700; padding: 3px 6px; border-radius: 999px; }
+.note { font-size: 13px; color: #3f3f46; line-height: 1.45; }
+.note b { font-weight: 650; }
+</style></head><body>
+<div class="cases">
+  <div class="case">
+    <h5>Keyboard</h5><p class="cond">iPhone SE · keyboard open</p>
+    <div class="pair">
+      <div><div class="lab b">Before</div><div class="phone">
+        <div class="scr"><div class="h">Contact details</div><div class="fl">Name</div><div class="in">Jane Doe</div><div class="fl">Email</div><div class="in">jane@example.com</div><div class="fl">Phone</div><div class="in focus">0555 123</div><div class="btn">Save</div></div>
+        <div class="kb over"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div></div>
+      <div><div class="lab a">After</div><div class="phone">
+        <div class="scr" style="justify-content:flex-end"><div class="fl">Email</div><div class="in">jane@example.com</div><div class="fl">Phone</div><div class="in focus">0555 123</div><div class="btn">Save</div></div>
+        <div class="kb"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div></div>
+    </div>
+    <p class="note"><b>Before:</b> Save sits under the keyboard, so the user has to dismiss it to finish. <b>After:</b> the form scrolls so the focused field and the action stay visible (<code>imePadding</code>, a <code>ScrollView</code> with focus, <code>100dvh</code>).</p>
+  </div>
+  <div class="case">
+    <h5>Largest text size</h5><p class="cond">Dynamic Type AX3 · 200% font scale</p>
+    <div class="pair">
+      <div><div class="lab b">Before</div><div class="phone xl">
+        <div class="scr"><div class="h cut">Your routes for this week</div><div class="chiprow"><span class="ch">All</span><span class="ch clip">Mathematics</span><span class="ch clip">Physics</span></div><div class="row"><div class="sk" style="width:38px;height:38px"></div><div style="font-size:13px;font-weight:650;height:34px;overflow:hidden">Solar System Explorer</div></div><div class="btn" style="font-size:13px;height:30px;white-space:nowrap;overflow:hidden;justify-content:start;padding:0 8px;display:flex;align-items:center">Start today's lesson now</div></div>
+      </div></div>
+      <div><div class="lab a">After</div><div class="phone xl">
+        <div class="scr"><div class="h">Your routes for this week</div><div class="chipwrap"><span class="ch">All</span><span class="ch">Mathematics</span><span class="ch">Physics</span></div><div style="font-size:13px;font-weight:650">Solar System Explorer</div><div class="btn" style="font-size:13px;height:auto;padding:6px">Start today's lesson now</div></div>
+      </div></div>
+    </div>
+    <p class="note"><b>Before:</b> the fixed-height title is cut off, chips truncate and the button clips its label. <b>After:</b> the text wraps, the chips flow onto new lines and the layout goes vertical (<code>ViewThatFits</code>, <code>FlowRow</code>, no fixed heights).</p>
+  </div>
+  <div class="case">
+    <h5>Loading &amp; media</h5><p class="cond">Slow 4G · one image fails</p>
+    <div class="pair">
+      <div><div class="lab b">Before</div><div class="phone">
+        <div class="scr"><div class="h">Routes</div><div class="sk" style="height:10px;width:70%"></div><div class="sk" style="height:10px;width:50%"></div><div class="sk" style="height:10px;width:60%"></div><div style="height:6px"></div><div class="img broken">⊘</div><div class="t2">Solar System</div><div class="m2">41 stops · 145 min</div><div class="img" style="height:64px;background:linear-gradient(135deg,#fde68a,#f59e0b)"></div><div class="t2">Ancient History</div></div>
+        <span class="jump">↕ jumps</span>
+      </div></div>
+      <div><div class="lab a">After</div><div class="phone">
+        <div class="scr"><div class="h">Routes</div><div class="sk img" style="height:64px"></div><div class="sk" style="height:10px;width:75%"></div><div class="sk" style="height:8px;width:45%"></div><div style="height:4px"></div><div class="img ph" style="height:64px">SS</div><div class="t2">Solar System</div><div class="m2">41 stops · 145 min</div></div>
+      </div></div>
+    </div>
+    <p class="note"><b>Before:</b> the skeleton doesn't match the real card, so content jumps, and the failed image collapses. <b>After:</b> the skeleton is built from the real component and a placeholder keeps the image ratio (<code>.redacted</code>, <code>aspect-ratio</code>).</p>
+  </div>
+</div>
+</body></html>

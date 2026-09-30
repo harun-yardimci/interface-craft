@@ -1,6 +1,6 @@
 ---
 name: interface-craft
-description: Review, improve, or build a whole interface across usability, task flow, microcopy, system states, accessibility, and visual polish. Use for broad requests such as "review this screen/UX", "improve this interface", "make this form/onboarding/checkout better", "UX audit", "heuristic review", "fix the empty/error/loading states", "check dark mode / light mode", "theme inconsistencies", "cards have different heights", "arayüzü iyileştir", "bu ekranı incele", "UX'ini düzelt", "formu daha kullanışlı yap", "dark mode / light mode tutarsızlıklarını denetle", "kartlar aynı boyda değil". For narrow requests, prefer a narrower skill if one is installed (e.g. design:ux-copy for copy only, make-interfaces-feel-better for visual detail polish, design:accessibility-review for a WCAG audit, ui-compliance for native HIG/Material compliance); if none is available, handle it here with only the relevant reference. Not for backend-only work or marketing copy.
+description: Review, improve, or build a whole interface across usability, task flow, microcopy, system states, accessibility, theming, layout resilience and visual polish. Use for broad requests like "review this screen/UX", "improve this interface", "make this form/onboarding/checkout better", "UX audit", "fix the empty/error/loading states", "check dark/light mode", "cards have different heights", "keyboard covers the button", "breaks on iPad/small screens", "inconsistent spacing/fonts", "arayüzü iyileştir", "bu ekranı incele", "dark/light mode tutarsızlıklarını denetle", "kartlar aynı boyda değil". For narrow requests prefer a narrower installed skill (design:ux-copy for copy only, make-interfaces-feel-better for visual polish, design:accessibility-review for WCAG audits, ui-compliance for HIG/Material compliance); if none is installed, handle it here with only the relevant reference. Not for backend-only work or marketing copy.
 ---
 
 # Interface Craft
@@ -19,9 +19,11 @@ Infer the mode from the request; do not present a menu:
 2. **Scan** the in-scope dimensions (all seven for broad work): task/flow, information & decision load, microcopy, interaction, visual craft, system states (empty/loading/error/success), accessibility. For broad reviews, walk all ten Nielsen heuristics (interaction reference).
 3. **Diagnose**: each issue = observed trigger → user consequence → concrete fix. Mark hypotheses as hypotheses. Never claim conversion gains or user testing from an expert review.
 4. **Prioritize**: (1) task blockers and accessibility, (2) errors, ambiguity, decision burden, (3) wording, hierarchy, consistency, (4) decorative polish. Merge overlapping findings into one fix.
-   If the product has multiple appearances, run `python3 scripts/theme_audit.py <ui-source-dir>` (path relative to this skill) as a static lead-finder, then confirm the findings visually.
+   Static lead-finders (paths relative to this skill; confirm every hit visually or in code):
+   - `python3 scripts/theme_audit.py <ui-source-dir>` when the product has light and dark appearances.
+   - `python3 scripts/token_audit.py <ui-source-dir>` on broad reviews or "inconsistent spacing/fonts" complaints: it finds literal font sizes, off-grid spacing, one-off radii and fonts that ignore Dynamic Type.
 5. **Implement** with the existing design language, tokens, components and dependencies. Before using a platform or library API, check the project's deployment target / dependency versions and confirm availability in current docs; use a compatible alternative or an availability guard when needed. When advice conflicts: user intent > accessibility > platform conventions > existing system > aesthetics. Do not add a library just for polish.
-6. **Verify** proportionally. Use preview/browser/simulator and project checks when available; never claim a check you did not run. Visual work: narrow + wide layouts, long text, and **both light and dark**, including overlays (sheets, menus, alerts) and every chip/button state. For repeated content (carousels, grids, lists), render the shortest and longest real items side by side and check equal heights, reserved text lines and fixed media ratios. Never change simulator or device appearance on a shared device without recording and restoring the previous value. Interaction work: keyboard/focus, loading/success/error, recovery paths.
+6. **Verify** proportionally. Use preview/browser/simulator and project checks when available; never claim a check you did not run. Visual work: narrow + wide layouts, long text, and **both light and dark**, including overlays (sheets, menus, alerts) and every chip/button state. For layout and loading (see [layout resilience](references/layout-resilience.md)): smallest and largest widths, landscape/iPad where supported, keyboard open on forms, largest text size, slow network and a failed image load. For repeated content (carousels, grids, lists), render the shortest and longest real items side by side and check equal heights, reserved text lines and fixed media ratios. Never change simulator or device appearance on a shared device without recording and restoring the previous value. Interaction work: keyboard/focus, loading/success/error, recovery paths.
 
 ## Platform routing
 - **Web (HTML/CSS/React/Tailwind)**: visual-craft values are the starting point; existing tokens and observed rendering win.
@@ -29,11 +31,12 @@ Infer the mode from the request; do not present a menu:
 - If `make-interfaces-feel-better` is installed and the task is heavy on web animation/surface code, load its reference files for full code samples.
 
 ## Reference routing (load only what the task needs)
-- [Visual craft](references/visual-craft.md): concrete values for radius, shadows, typography, motion, hit areas, performance - web and native.
+- [Visual craft](references/visual-craft.md): design-token consistency (`scripts/token_audit.py`), concrete values for radius, shadows, typography, motion, hit areas, performance - web and native.
 - [Interaction and feedback](references/interaction-and-feedback.md): ten Nielsen heuristics, forms, navigation, states, recovery, help.
 - [Cognitive principles](references/cognitive-principles.md): Laws of UX - choice, memory, grouping, progress, attention.
 - [Microcopy](references/microcopy.md): labels, buttons, helper text, errors, empty states, confirmations, localization (incl. Turkish).
 - [Theming](references/theming.md): light/dark consistency - fixed vs adaptive color pairing, overlays, assets, audit procedure, `scripts/theme_audit.py`.
+- [Layout resilience](references/layout-resilience.md): safe areas, keyboard, narrow/wide/iPad/landscape, large text, clipped controls, extreme data; loading states, skeleton parity, layout shift, image fallbacks.
 - [Accessibility](references/accessibility.md): semantics, keyboard, focus, contrast, targets, reduced motion, screen readers.
 
 ## Hard rules
