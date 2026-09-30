@@ -88,20 +88,7 @@ It then lists the **checks it actually ran** (browser preview, keyboard pass, bo
 
 ## How it works
 
-```mermaid
-flowchart LR
-    A[Request] --> B{Mode}
-    B -->|review| C[Inspect]
-    B -->|improve| C
-    B -->|create| C
-    C --> D[Scan in-scope dimensions]
-    D --> E[Diagnose<br/>trigger → consequence → fix]
-    E --> F[Prioritize]
-    F -->|review only| R[Report]
-    F --> G[Implement with existing<br/>tokens & components]
-    G --> H[Verify what changed]
-    H --> R
-```
+![Workflow: infer mode, inspect, scan in scope, diagnose, implement, verify and report; with the priority order and conflict-resolution chain](assets/workflow.png)
 
 1. **Mode is inferred:** *review* (report only), *improve* (fix and verify) or *create* (build it right from the start). You don't pick from a menu.
 2. **Scope follows the request.** A broad “review this screen” scans all seven dimensions. A narrow “only the microcopy” checks only that dimension plus whatever the change directly affects, such as a longer label still fitting.

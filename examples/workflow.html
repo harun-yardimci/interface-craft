@@ -1,0 +1,34 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+body { width: 1200px; padding: 36px; }
+.flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; align-items: stretch; }
+.step { background: #fff; border-radius: 14px; box-shadow: var(--shadow-border); padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 8px; position: relative; }
+.step:not(:last-child)::after { content: "→"; position: absolute; right: -13px; top: 50%; transform: translateY(-50%); color: #a1a1aa; font-size: 16px; z-index: 1; }
+.n { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .06em; }
+.step h5 { font-size: 16px; font-weight: 650; }
+.step p { font-size: 13px; color: #52525b; line-height: 1.45; }
+.step.key { background: #18181b; color: #fff; }
+.step.key p { color: #d4d4d8; } .step.key .n { color: #93c5fd; }
+.bar { margin-top: 18px; display: grid; grid-template-columns: 1fr 1.05fr; gap: 14px; }
+.box { background: #fff; border-radius: 14px; box-shadow: var(--shadow-border); padding: 16px 18px; }
+.box h6 { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.prio { display: flex; gap: 8px; }
+.prio span { flex: 1; font-size: 12.5px; font-weight: 600; border-radius: 8px; padding: 9px 10px; }
+.p1 { background: #fef2f2; color: #b91c1c; } .p2 { background: #fff7ed; color: #c2410c; } .p3 { background: #eff6ff; color: #1d4ed8; } .p4 { background: #f4f4f5; color: #52525b; }
+.chain { font-size: 13.5px; font-weight: 600; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chain i { font-style: normal; color: #a1a1aa; }
+</style></head><body>
+<div class="flow">
+  <div class="step"><span class="n">01</span><h5>Infer mode</h5><p>Review, improve or create, taken from the request. No menu.</p></div>
+  <div class="step"><span class="n">02</span><h5>Inspect</h5><p>Code, tokens, components, copy, the main task. Visible vs unknown behavior.</p></div>
+  <div class="step"><span class="n">03</span><h5>Scan in scope</h5><p>All 7 dimensions for broad work; only the requested ones for narrow work.</p></div>
+  <div class="step key"><span class="n">04</span><h5>Diagnose</h5><p>Trigger → user consequence → concrete fix. Hypotheses labeled.</p></div>
+  <div class="step"><span class="n">05</span><h5>Implement</h5><p>Existing tokens and components; check API availability. Skipped in review mode.</p></div>
+  <div class="step"><span class="n">06</span><h5>Verify & report</h5><p>Only checks actually run. Priority-sorted table, limits stated.</p></div>
+</div>
+<div class="bar">
+  <div class="box"><h6>Priority order</h6><div class="prio"><span class="p1">1 · Blockers & a11y</span><span class="p2">2 · Errors & ambiguity</span><span class="p3">3 · Wording & hierarchy</span><span class="p4">4 · Polish</span></div></div>
+  <div class="box"><h6>When advice conflicts</h6><div class="chain">User intent <i>›</i> Accessibility <i>›</i> Platform <i>›</i> Design system <i>›</i> Aesthetics</div></div>
+</div>
+</body></html>
