@@ -17,7 +17,9 @@ It combines five bodies of practice in one skill, with rules for which one wins 
 - **Laws of UX**: Fitts, Hick, Jakob, Miller, goal-gradient and others, used as decision aids rather than dogma
 - **UX writing**: labels, errors, empty states, confirmations, localization
 - **Accessibility**: WCAG 2.2 AA thresholds, keyboard, focus, screen readers, reduced motion
-- **Visual craft**: concrete values for radius, shadows, typography and motion, adapted from [make-interfaces-feel-better](https://github.com/jakubkrehel/make-interfaces-feel-better)
+- **Visual craft**: concrete values for radius, shadows, typography and motion, inspired by [make-interfaces-feel-better](https://github.com/jakubkrehel/make-interfaces-feel-better)
+
+The full list of principles and sources is in [Foundations: what we follow](#foundations-what-we-follow).
 
 ---
 
@@ -27,6 +29,7 @@ It combines five bodies of practice in one skill, with rules for which one wins 
 - [What the agent reports](#what-the-agent-reports)
 - [How it works](#how-it-works)
 - [What it pays attention to](#what-it-pays-attention-to)
+- [Foundations: what we follow](#foundations-what-we-follow)
 - [What it will not do](#what-it-will-not-do)
 - [Install](#install)
 - [Usage](#usage)
@@ -117,24 +120,6 @@ It then lists the **checks it actually ran** (browser preview, keyboard pass, bo
 </table>
 
 <details>
-<summary><b>Laws of UX: how they're used</b></summary>
-
-<br>
-
-Each principle is written as *symptom → fix → what not to do*, for example:
-
-| Principle | Symptom → fix | Don't |
-|---|---|---|
-| Fitts's law | Small or distant targets → bigger targets, primary action near the task | Let enlarged targets overlap |
-| Hick's law | Stalled decisions → clearer categories, a sensible default | Delete useful options just to lower the count |
-| Miller's law | Remembering across screens → chunk info, keep context visible | Cap menus at “7±2” items |
-| Goal-gradient | Long flows feel endless → truthful step indicator | Fake progress |
-| Doherty threshold | Actions feel unresponsive → instant pressed state, honest pending state | Add artificial delay |
-
-See [`cognitive-principles.md`](skills/interface-craft/references/cognitive-principles.md) for the full list.
-</details>
-
-<details>
 <summary><b>Web and native platforms</b></summary>
 
 <br>
@@ -158,6 +143,122 @@ Before using newer platform APIs, the skill checks your deployment target and de
 
 The microcopy reference covers locale formatting (`₺1.234,50`), plural rules and text expansion, plus Turkish-specific pitfalls: `i/İ` and `ı/I` casing, vowel-harmony suffixes on dynamic values, and consistent *sen/siz* address. The agent keeps the interface's existing locale and replies in your language.
 </details>
+
+---
+
+## Foundations: what we follow
+
+The skill doesn't invent its own design theory. It builds on established, publicly documented guidance, listed below with sources. Each rule is a **decision aid**: the agent applies it only when it can point to an observed problem, and never as a checklist to fill.
+
+### 1. Nielsen's 10 usability heuristics
+
+Source: Jakob Nielsen, [10 Usability Heuristics for User Interface Design](https://www.nngroup.com/articles/ten-usability-heuristics/) (Nielsen Norman Group). All ten are walked on every broad review.
+
+| # | Heuristic | What the agent checks |
+|---|---|---|
+| 1 | Visibility of system status | Can the user tell pending, done and failed apart? Is there feedback right after an action? |
+| 2 | Match between system and the real world | Do the terms and icons use the audience's words, not internal jargon? |
+| 3 | User control and freedom | Can an accidental action be cancelled, undone or exited? |
+| 4 | Consistency and standards | Do equivalent controls look and behave the same, and follow platform conventions? |
+| 5 | Error prevention | Which costly mistake could a safe default, constraint or inline hint prevent? |
+| 6 | Recognition rather than recall | Is the information needed for a decision visible at that moment? |
+| 7 | Flexibility and efficiency of use | Do frequent tasks have shortcuts without hiding the standard path? |
+| 8 | Aesthetic and minimalist design | Which elements compete with the main task without helping it? |
+| 9 | Help users recognize, diagnose, and recover from errors | Does every error say what went wrong and what to do next, and keep the user's input? |
+| 10 | Help and documentation | Is help available right where the confusion happens? |
+
+### 2. Laws of UX
+
+Source: Jon Yablonski, [Laws of UX](https://lawsofux.com/). The skill covers the whole catalog. Each law is written as *symptom → fix → what not to do*, because these are hypotheses about behavior, not guarantees.
+
+**Core principles** (used whenever they fit)
+
+| Law | How it is applied | Guardrail |
+|---|---|---|
+| [Fitts's law](https://lawsofux.com/fittss-law/) | Bigger targets, more spacing, primary action close to the task | Enlarged targets must not overlap |
+| [Hick's law](https://lawsofux.com/hicks-law/) | Clearer categories, ranked options, a sensible default | Don't delete useful options just to lower the count |
+| [Jakob's law](https://lawsofux.com/jakobs-law/) | Follow platform and product conventions | Don't copy another product wholesale |
+| [Tesler's law](https://lawsofux.com/teslers-law/) | Move derivable effort into defaults and computed values | Inferred values stay visible and editable |
+| [Doherty threshold](https://lawsofux.com/doherty-threshold/) | Instant pressed state; honest pending and skeleton states | Never add artificial delay |
+| [Goal-gradient effect](https://lawsofux.com/goal-gradient-effect/) | A truthful step indicator in long flows | Never fake progress |
+| [Zeigarnik effect](https://lawsofux.com/zeigarnik-effect/) | Autosave drafts; a visible way to resume | No nagging or manufactured unfinished tasks |
+| [Von Restorff effect](https://lawsofux.com/von-restorff-effect/) | One clearly primary action; the rest secondary | Don't highlight several things at once |
+| [Peak-end rule](https://lawsofux.com/peak-end-rule/) | Clear, useful completion moments (receipt, next step) | Celebration doesn't fix a broken flow |
+| [Aesthetic-usability effect](https://lawsofux.com/aesthetic-usability-effect/) | Coherent spacing, type and color | Polish can hide problems, so function is tested separately |
+
+**Memory and cognitive load**
+
+| Law | How it is applied |
+|---|---|
+| [Miller's law](https://lawsofux.com/millers-law/) | Group information and keep context visible. The skill deliberately does **not** cap menus at “7±2”. |
+| [Chunking](https://lawsofux.com/chunking/) | Break long content and inputs (phone numbers, IBANs, steps) into meaningful groups |
+| [Working memory](https://lawsofux.com/working-memory/) | Don't make users carry values from one screen to the next |
+| [Cognitive load](https://lawsofux.com/cognitive-load/) | Remove redundant interpretation; organize around the task |
+
+**Grouping (Gestalt)**
+
+| Law | How it is applied |
+|---|---|
+| [Law of Proximity](https://lawsofux.com/law-of-proximity/) | Spacing is the first tool for showing what belongs together |
+| [Law of Common Region](https://lawsofux.com/law-of-common-region/) | Containers only when spacing isn't enough; too many add clutter |
+| [Law of Similarity](https://lawsofux.com/law-of-similarity/) | Same function, same style; different function, visibly different |
+| [Law of Uniform Connectedness](https://lawsofux.com/law-of-uniform-connectedness/) | Connect related items visually; make sure “Delete” doesn't look grouped with “Save” |
+| [Law of Prägnanz](https://lawsofux.com/law-of-pr%C3%A4gnanz/) | Prefer simple, recognizable shapes and readable visual paths |
+
+**Applied only with a concrete fit**
+
+| Law | When it is used / limit |
+|---|---|
+| [Choice overload](https://lawsofux.com/choice-overload/) | Hard comparisons → comparison tables and filters. A large set isn't automatically overwhelming. |
+| [Mental model](https://lawsofux.com/mental-model/) | Surprising behavior → explain it in the user's terms and validate the assumption |
+| [Selective attention](https://lawsofux.com/selective-attention/) | Put task-relevant signals near the work; don't demand attention for secondary content |
+| [Serial position effect](https://lawsofux.com/serial-position-effect/) | Put key items first or last in long lists; never bury critical content |
+| [Flow](https://lawsofux.com/flow/) | Fewer interruptions in sustained work, while keeping exits and important warnings |
+| [Paradox of the active user](https://lawsofux.com/paradox-of-the-active-user/) | Contextual, learn-by-doing help instead of up-front tutorials |
+| [Postel's law](https://lawsofux.com/postels-law/) | Accept harmless format variations; never silently reinterpret ambiguous dates, amounts or identities |
+| [Occam's razor](https://lawsofux.com/occams-razor/) | Prefer the simpler adequate interaction without removing needed capability |
+| [Pareto principle](https://lawsofux.com/pareto-principle/) | Prioritize tasks shown to be frequent or high-impact; never invent an 80/20 split |
+| [Parkinson's law](https://lawsofux.com/parkinsons-law/) | Remove unnecessary effort; never impose artificial time pressure |
+| [Cognitive bias](https://lawsofux.com/cognitive-bias/) | Name the specific bias and the observed issue; the category alone is not a design instruction |
+
+### 3. Inspired by *make-interfaces-feel-better*
+
+The visual-craft layer is inspired by and adapted from [**make-interfaces-feel-better**](https://github.com/jakubkrehel/make-interfaces-feel-better) by **Jakub Krehel** (MIT). These are the techniques taken from it:
+
+| Area | Techniques |
+|---|---|
+| Surfaces | Concentric border radius · optical alignment of icons · layered shadows instead of borders · subtle image outlines · minimum hit area |
+| Typography | `text-wrap: balance` / `pretty` · font smoothing · tabular numbers |
+| Motion | Interruptible transitions · split and staggered enter animations · subtle exits · contextual icon animations · `scale(0.96)` on press · no animation on first render |
+| Performance | No `transition: all` · `will-change` only when needed |
+
+**What Interface Craft changes:** the values are **starting defaults** rather than rules, so design tokens and the rendered result win. It adds SwiftUI and Compose equivalents with OS-version checks, reduced-motion handling, a forced-colors caveat for shadow-only boundaries, and platform-specific target sizes (iOS 44pt, Android 48dp). Visual polish sits **last** in the priority order, after task, copy, states and accessibility.
+
+### 4. WCAG 2.2 accessibility
+
+Source: W3C, [Web Content Accessibility Guidelines 2.2](https://www.w3.org/TR/WCAG22/). Level AA is the baseline, plus the platform's own guidance (Apple HIG, Material 3).
+
+| Check | Threshold |
+|---|---|
+| Text contrast | 4.5:1 (large text 3:1) |
+| Non-text contrast (borders, icons, focus rings) | 3:1 |
+| Target size | 24×24 CSS px minimum; 44×44 enhanced; iOS 44pt, Android 48dp |
+| Focus | Always visible; not hidden by sticky UI; modals trap and return focus |
+| Reflow / zoom | Works at 320px width and 200% text zoom |
+| Motion | Honors reduced-motion preferences; nothing flashes more than 3 times per second |
+
+The skill reports which accessibility checks it actually ran, and says clearly that an automated check is not a conformance certificate.
+
+### 5. House rules
+
+These rules come from UX writing and ethical-design practice and are applied throughout:
+
+- **UX writing:** buttons use a verb plus object (“Delete invoices”, not “Yes”). Errors name the problem and the fix. Labels are persistent, so no placeholder-as-label. Empty, no-results and failed states are kept distinct. Terms stay consistent across the flow. Strings are localization-safe: no concatenation, locale formats, plural rules.
+- **Honest state:** never claim success before it's confirmed. Keep input after recoverable errors. Prefer undo over routine confirmation dialogs, and confirm costly irreversible actions with their scope.
+- **No dark patterns:** no fake urgency or countdowns, hidden costs or renewals, guilt-based opt-outs (“confirmshaming”), fake progress, or pressure tactics.
+- **Honest reporting:** only checks actually run are reported. Hypotheses are labeled. No invented conversion numbers, and an expert review is never presented as user research.
+- **Priority order:** blockers and accessibility, then errors, ambiguity and decision load, then wording and hierarchy, then polish.
+- **Conflict resolution:** `user intent > accessibility > platform conventions > existing design system > aesthetics`.
 
 ---
 
@@ -256,7 +357,7 @@ Please keep additions evidence-based and concrete. A new rule should name the pr
 
 ## Credits and license
 
-- Visual craft values are adapted from [**make-interfaces-feel-better**](https://github.com/jakubkrehel/make-interfaces-feel-better) by Jakub Krehel (MIT). See [NOTICE](NOTICE).
+- Inspired by [**make-interfaces-feel-better**](https://github.com/jakubkrehel/make-interfaces-feel-better) by Jakub Krehel (MIT); the visual-craft values are adapted from it. See [NOTICE](NOTICE).
 - Heuristics: Jakob Nielsen, [10 Usability Heuristics for User Interface Design](https://www.nngroup.com/articles/ten-usability-heuristics/). Only the heuristic names are used; the guidance is original.
 - Laws of UX: Jon Yablonski, [lawsofux.com](https://lawsofux.com/). Principle names link to the source; the guidance is original.
 - Accessibility thresholds reference [WCAG 2.2](https://www.w3.org/TR/WCAG22/).
