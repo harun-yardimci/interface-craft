@@ -67,6 +67,10 @@ def main():
     ap.add_argument("--grid", type=float, default=4, help="spacing grid in pt/px/dp (default 4)")
     ap.add_argument("--max", type=int, default=25, help="max listed hits per rule")
     opts = ap.parse_args()
+    if opts.grid <= 0:
+        ap.error("--grid must be a positive number (e.g. 4 or 2)")
+    if opts.max < 1:
+        ap.error("--max must be a positive integer")
     root, grid, max_hits = opts.path, opts.grid, opts.max
 
     values = defaultdict(Counter)          # category -> Counter(value)

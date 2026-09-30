@@ -4,11 +4,12 @@ Use for any UI review or change on a product that supports more than one appeara
 
 Platform guidance: [Apple HIG: Dark Mode](https://developer.apple.com/design/human-interface-guidelines/dark-mode) · [Material 3: color roles](https://m3.material.io/styles/color/roles) · [Android: dark theme](https://developer.android.com/develop/ui/views/theming/darktheme) · MDN [`color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/color-scheme) and [`prefers-color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme).
 
-## The core rule: pair roles, never mix fixed and adaptive
-Every foreground must come from the **same theme source** as the background it sits on:
+## The core rule: pair roles; verify any mix in both themes
+By default, a foreground comes from the **same theme source** as the background it sits on:
 - Adaptive background + adaptive "on" color: `surface`/`onSurface`, `systemBackground`/`label`, `bg-background`/`text-foreground`.
 - Fixed background + fixed foreground, but only for deliberately theme-independent surfaces such as a brand-colored button or a photo overlay.
-- **Bug:** a fixed background with an adaptive foreground, or the other way round. Example: a sheet hardcoded to `.white` whose text uses `.primary` or `.secondary`. In dark mode the text turns white on white and disappears.
+- **Risky:** a fixed background with an adaptive foreground, or the other way round. One side changes with the theme and the other doesn't, so contrast holds in one theme and can collapse in the other. Example: a sheet hardcoded to `.white` whose text uses `.primary` or `.secondary`. In dark mode the text turns white on white and disappears.
+- A mix is acceptable only when its contrast is **verified in both themes** (4.5:1 for text, 3:1 for icons and borders). An example is a mid-tone brand surface whose adaptive text happens to pass in both. Even then, prefer pairing roles, because a later token change can break it silently.
 
 ## Common failure patterns
 | Pattern | Symptom | Fix |

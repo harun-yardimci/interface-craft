@@ -56,7 +56,9 @@ Screens feel "off" when each one invents its own sizes. Examples: 11.5, 13, 15 a
 - Typography should scale with the user's text size: text styles or `Font.custom(_:size:relativeTo:)` on iOS, `sp` on Android, `rem` on the web.
 
 ## Repeated content: rows, grids, carousels
-Items shown side by side (cards in a carousel, grid cells, list rows with media) must share a **consistent shape** whatever their content. Heights that jump with title length, or a title truncated in one card while its neighbor is a line shorter, read as broken layout.
+**Comparable cards shown side by side** (a carousel, one grid row, a row of plans or products) should share a **consistent shape** whatever their content. Heights that jump with title length, or a title truncated in one card while its neighbor is a line shorter, read as broken layout.
+
+**Vertical lists are different:** rows with variable content (messages, notifications, search results) may keep their natural height. Clamping them to equal heights hides information. In lists, keep media size, leading alignment and spacing consistent instead.
 
 | Rule | Web | SwiftUI | Compose |
 | --- | --- | --- | --- |

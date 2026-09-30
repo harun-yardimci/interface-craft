@@ -75,17 +75,17 @@ These mockups show the kind of changes the skill proposes. Their HTML sources ar
 
 > **Why:** these details only matter once the basics above work, which is why polish comes last in the skill's priority order. The values (radius math, three-layer shadow, `tabular-nums`, `scale(0.96)` on press, and so on) are **starting defaults**. Your design tokens and what the rendered result looks like take precedence.
 
-### 6. Light / dark consistency: no fixed-vs-adaptive mixes
+### 6. Light / dark consistency: pair colors from the same theme
 
 ![Filters sheet in dark mode: fixed light sheet and chips with adaptive text make labels invisible; after, surfaces use adaptive tokens and the screen is readable in both dark and light mode; a static scan flags the mix](assets/theming.png)
 
-> **Why:** the most common theme bug is a *fixed* background (`Color.white`, `#F8FAFC`, `bg-white`) paired with an *adaptive* text color that turns light in dark mode, leaving white text on a white surface. The skill checks that background and foreground come from the same theme source. It renders the screen and its overlays in **both** themes, and ships a static scanner, [`theme_audit.py`](skills/interface-craft/scripts/theme_audit.py), that flags these mixes in SwiftUI, Compose and Tailwind before users see them. See [Theme audit](#theme-audit-catch-lightdark-bugs-before-users-do) for usage and example output.
+> **Why:** the most common theme bug is a *fixed* background (`Color.white`, `#F8FAFC`, `bg-white`) paired with an *adaptive* text color that turns light in dark mode, leaving white text on a white surface. The skill checks that background and foreground come from the same theme source, and treats any fixed/adaptive mix as a bug unless its contrast is verified in both themes. It renders the screen and its overlays in **both** themes, and ships a static scanner, [`theme_audit.py`](skills/interface-craft/scripts/theme_audit.py), that flags these mixes in SwiftUI, Compose and Tailwind before users see them. See [Theme audit](#theme-audit-catch-lightdark-bugs-before-users-do) for usage and example output.
 
 ### 7. Repeated content: equal cards in rows and carousels
 
 ![Carousel before and after: card heights follow title length and some titles truncate while others run to three lines; after, every title reserves two lines, the image ratio is fixed and the meta row is pinned to the bottom, so all cards share one height](assets/equal-cards.png)
 
-> **Why:** sample data with similar-length titles hides this bug until real content arrives. For carousels, grids and lists the skill renders the **shortest and longest real items side by side**, then applies reserved text lines (`lineLimit(2, reservesSpace: true)`, `line-clamp` + `min-height`, `minLines`), stretch-to-tallest rows, fixed media ratios and a bottom-pinned meta row. Truncation must not hide information: the full title stays in the accessibility label. At large text sizes, readability wins over equal heights.
+> **Why:** sample data with similar-length titles hides this bug until real content arrives. For carousels and grid rows the skill renders the **shortest and longest real items side by side**, then applies reserved text lines (`lineLimit(2, reservesSpace: true)`, `line-clamp` + `min-height`, `minLines`), stretch-to-tallest rows, fixed media ratios and a bottom-pinned meta row. Truncation must not hide information: the full title stays in the accessibility label. At large text sizes, readability wins over equal heights. Vertical lists with variable content keep their natural row heights; only media size and alignment stay consistent.
 
 ### 8. Layout resilience: keyboard, large text, slow networks
 
@@ -282,7 +282,7 @@ The skill reports which accessibility checks it actually ran, and says clearly t
 
 Sources: [Apple HIG: Dark Mode](https://developer.apple.com/design/human-interface-guidelines/dark-mode) · [Material 3: color roles](https://m3.material.io/styles/color/roles) · [Android: dark theme](https://developer.android.com/develop/ui/views/theming/darktheme) · MDN [`color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/color-scheme) and [`prefers-color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme).
 
-- **Pair roles:** each foreground comes from the same theme source as its background (`surface`/`onSurface`, `systemBackground`/`label`, `bg-background`/`text-foreground`). Fixed colors are only for deliberately theme-independent surfaces, and then the foreground is fixed too.
+- **Pair roles:** each foreground comes from the same theme source as its background (`surface`/`onSurface`, `systemBackground`/`label`, `bg-background`/`text-foreground`). Fixed colors are only for deliberately theme-independent surfaces, and then the foreground is fixed too. Any fixed/adaptive mix must have its contrast verified in both themes.
 - **Every token has a dark value.** Asset color sets, `values-night`, `.dark` CSS variables.
 - **Overlays count:** sheets, menus, alerts, toasts, pickers and empty/error states are rendered in both themes.
 - **Contrast per theme:** WCAG thresholds apply separately in light and dark, for every state.
@@ -296,7 +296,7 @@ These rules come from UX writing and ethical-design practice and are applied thr
 - **Honest state:** never claim success before it's confirmed. Keep input after recoverable errors. Prefer undo over routine confirmation dialogs, and confirm costly irreversible actions with their scope.
 - **No dark patterns:** no fake urgency or countdowns, hidden costs or renewals, guilt-based opt-outs (“confirmshaming”), fake progress, or pressure tactics.
 - **Honest reporting:** only checks actually run are reported. Hypotheses are labeled. No invented conversion numbers, and an expert review is never presented as user research.
-- **Repeated content:** items shown side by side share one shape. Text lines are reserved, rows stretch to the tallest item, media ratios are fixed, and the result is tested with the shortest and longest real content.
+- **Repeated content:** comparable cards shown side by side share one shape. Text lines are reserved, rows stretch to the tallest item, media ratios are fixed, and the result is tested with the shortest and longest real content. Vertical lists keep their natural row heights.
 - **Real conditions:** smallest and largest widths, keyboard open, largest text size, slow network and failed images are all checked. Every finding names the device, width, text size or network condition behind it.
 - **Priority order:** blockers and accessibility, then errors, ambiguity and decision load, then wording and hierarchy, then polish.
 - **Conflict resolution:** `user intent > accessibility > platform conventions > existing design system > aesthetics`.
@@ -399,13 +399,13 @@ Example output:
 [HIGH] asset-no-dark      A.xcassets/Brand.colorset
        Color set has no Dark appearance
 [HIGH] mix                FilterSheet.swift:4
-       Fixed background next to adaptive foreground (isSelected ? .white : Theme.ink): text likely vanishes in one theme
+       Fixed background next to adaptive foreground (isSelected ? .white : Theme.ink): unless contrast is verified in both themes, text likely vanishes in one
        > .background(Color(hex: "F8FAFC"))
 [HIGH] mix                FilterSheet.swift:9
-       Fixed background next to adaptive foreground (isSelected ? .white : Theme.ink): text likely vanishes in one theme
+       Fixed background next to adaptive foreground (isSelected ? .white : Theme.ink): unless contrast is verified in both themes, text likely vanishes in one
        > .background( isSelected ? Theme.cobalt : Color.white, in: RoundedRectangle(cornerRadius: 10) )
 [HIGH] tw-mix             web/Card.tsx:1
-       Fixed Tailwind background with a theme text token: text likely vanishes in one theme
+       Fixed Tailwind background with a theme text token: unless contrast is verified in both themes, text likely vanishes in one
        > <div class="bg-white text-foreground p-4">x</div>
 [WARN] fixed-bg           BrandButton.swift:3
        Opaque fixed background; its foreground must be fixed too, or use an adaptive surface token
@@ -423,11 +423,11 @@ The fix is to take the background and foreground from the same theme source:
 | Rule | Severity | What it catches |
 |---|---|---|
 | `mix` | high | SwiftUI: an opaque fixed background (`Color.white`, `Color(hex:)`, `.black`) within a few lines of an adaptive foreground (`.primary`, `.secondary`, project tokens); multi-line modifiers included |
-| `tw-mix` | high | Tailwind: `bg-white` / `bg-zinc-100`… on the same element as a theme text token (`text-foreground`, `text-muted-foreground`) |
+| `tw-mix` | high | Tailwind: a fixed background (`bg-white`, `bg-zinc-100`…) with no `dark:bg-*`, on the same element as a theme text token (`text-foreground`, `text-muted-foreground`). Each `class` attribute is judged separately, so a nested element isn't hidden by its parent's `dark:` classes. |
 | `asset-no-dark` | high | Xcode color sets with no Dark appearance |
 | `fixed-bg` | warn | Opaque fixed backgrounds, which are fine for brand surfaces when the foreground is fixed too |
 | `scheme-override` | warn | `.preferredColorScheme`, `.environment(\.colorScheme, .light)`, `overrideUserInterfaceStyle`, forced Compose themes |
-| `tw-no-dark` | warn | Fixed Tailwind colors without a `dark:` variant |
+| `tw-no-dark` | warn | A fixed Tailwind color class without a `dark:` variant **for the same utility** on that element (e.g. `border-gray-200` next to `dark:bg-zinc-900` is still flagged) |
 | `android-no-night` · `web-no-color-scheme` | warn | Missing `values-night/` resources; missing CSS `color-scheme` |
 | `fixed-stroke` · `inline-color` · `fixed-color` (CSS) | info | Literal border or inline colors that bypass theme tokens |
 
@@ -519,7 +519,7 @@ skills/interface-craft/
     ├── layout-resilience.md         # safe areas, keyboard, sizes, large text, loading & media
     └── visual-craft.md              # concrete values + SwiftUI/Compose equivalents
 skills/interface-craft/scripts/
-├── theme_audit.py                   # static scan for fixed-vs-adaptive color mixes
+├── theme_audit.py                   # static scan for unverified fixed/adaptive color mixes
 ├── token_audit.py                   # static scan for font/spacing/radius drift
 └── hit_area_audit.py                # static scan for hit areas that differ from what's drawn
 .claude-plugin/                      # Claude Code plugin + marketplace manifests

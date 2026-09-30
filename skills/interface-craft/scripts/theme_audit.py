@@ -48,9 +48,32 @@ CSS = [
 
 TW_FIXED_BG = r"\bbg-(?:white|black|(?:gray|zinc|slate|neutral|stone)-\d{2,3})\b"
 TW_ADAPTIVE_TEXT = r"\btext-(?!(?:white|black|transparent|current|inherit|left|right|center|justify|start|end|wrap|nowrap|balance|pretty|ellipsis|clip|xs|sm|base|lg|xl|[2-9]xl)\b|(?:gray|zinc|slate|neutral|stone|red|blue|green|amber|orange|yellow|indigo|violet|purple|pink|rose|sky|cyan|teal|emerald|lime|fuchsia)-\d|\[)[a-z][a-z-]*"
+TW_FIXED = re.compile(r"^(bg|text|border|ring|divide|fill|stroke|outline)-(?:white|black|(?:gray|zinc|slate|neutral|stone)-\d{2,3})(?:/\d+)?$")
+TW_CLASS_ATTR = re.compile(r"\bclass(?:Name)?\s*=\s*[{(]?\s*[`\"']([^`\"']*)")
+
+
+def scan_tailwind(path, lines, hits):
+    """Judge each class attribute on its own, and each fixed color class against a
+    `dark:` variant for the same utility, instead of skipping any line with `dark:`."""
+    for i, line in enumerate(lines, 1):
+        for attr in TW_CLASS_ATTR.finditer(line):
+            tokens = attr.group(1).split()
+            base = [c for c in tokens if ":" not in c]
+            dark_utils = {c.split(":")[-1].split("-")[0] for c in tokens if c.startswith("dark:")}
+            fixed = [(c, TW_FIXED.match(c).group(1)) for c in base if TW_FIXED.match(c)]
+            snippet = attr.group(0).strip()[:140]
+            for cls, util in fixed:
+                if util not in dark_utils:
+                    hits.append(("warn", "tw-no-dark", path, i, snippet,
+                                 f"`{cls}` has no `dark:{util}-*` variant on this element"))
+            bg_fixed = any(u == "bg" for _, u in fixed) and "bg" not in dark_utils
+            adaptive_text = any(re.match(TW_ADAPTIVE_TEXT, c) and not TW_FIXED.match(c) for c in base)
+            if bg_fixed and adaptive_text:
+                hits.append(("high", "tw-mix", path, i, snippet,
+                             "Fixed Tailwind background with a theme text token: unless contrast is verified in both themes, text likely vanishes in one"))
+
+
 MARKUP = [
-    ("tw-mix", "high", re.compile(r"(?=.*" + TW_FIXED_BG + r")(?=.*" + TW_ADAPTIVE_TEXT + r")"), "Fixed Tailwind background with a theme text token: text likely vanishes in one theme"),
-    ("tw-no-dark", "warn", re.compile(r"\b(?:bg|text|border|ring|divide|fill|stroke)-(?:white|black|(?:gray|zinc|slate|neutral|stone)-\d{2,3})\b"), "Fixed Tailwind color without a dark: variant on this line"),
     ("inline-color", "info", re.compile(r"style=\{?\{?[^}]*(?:color|background)[^}]*(?:#[0-9A-Fa-f]{3,8}|rgba?\()"), "Inline literal color; prefer a theme token"),
     ("class-override", "info", re.compile(r"className=\"[^\"]*\b(?:light|dark)\b(?!:)"), "Hardcoded theme class on a subtree"),
 ]
@@ -83,6 +106,8 @@ def main():
     ap.add_argument("path", nargs="?", default=".")
     ap.add_argument("--max", type=int, default=40, help="max listed hits per rule")
     opts = ap.parse_args()
+    if opts.max < 1:
+        ap.error("--max must be a positive integer")
     root, max_per_rule = opts.path, opts.max
 
     hits = []
@@ -119,7 +144,7 @@ def main():
                             adaptive.append(arg.strip())
                 if adaptive:
                     hits.append(("high", "mix", path, i + 1, stmt.strip()[:140],
-                                 f"Fixed background next to adaptive foreground ({adaptive[0][:50]}): text likely vanishes in one theme"))
+                                 f"Fixed background next to adaptive foreground ({adaptive[0][:50]}): unless contrast is verified in both themes, text likely vanishes in one"))
         elif ext in (".kt", ".kts"):
             lines = scan_lines(path, KOTLIN, hits, lambda l: l.strip().startswith("//"))
             text = "".join(lines)
@@ -139,7 +164,8 @@ def main():
                 has_color_scheme_decl = True
         elif ext in (".tsx", ".jsx", ".html", ".vue", ".svelte", ".astro"):
             web_files += 1
-            lines = scan_lines(path, MARKUP, hits, lambda l: "dark:" in l)
+            lines = scan_lines(path, MARKUP, hits)
+            scan_tailwind(path, lines, hits)
             if any("color-scheme" in l for l in lines):
                 has_color_scheme_decl = True
         elif name == "Contents.json" and dirpath.endswith(".colorset"):

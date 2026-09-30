@@ -149,6 +149,8 @@ def main():
     ap.add_argument("path", nargs="?", default=".")
     ap.add_argument("--max", type=int, default=40, help="max listed hits per rule")
     opts = ap.parse_args()
+    if opts.max < 1:
+        ap.error("--max must be a positive integer")
     root, max_per_rule = opts.path, opts.max
 
     hits = []
