@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.stage { flex-direction: column; align-items: stretch; gap: 14px; min-height: 0; padding: 22px; }
+.lbl { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #a1a1aa; }
+.row { background: #fff; border-radius: 12px; box-shadow: var(--shadow-border); padding: 14px; display: flex; align-items: center; gap: 12px; }
+.av { width: 36px; height: 36px; border-radius: 50%; background: #e0e7ff; flex: none; }
+.who { flex: 1; min-width: 0; }
+.who b { display: block; font-size: 14.5px; }
+.who span { font-size: 12.5px; color: #71717a; }
+.amt { font-weight: 650; font-variant-numeric: tabular-nums; font-size: 14.5px; }
+.chip { font-size: 12px; border-radius: 999px; padding: 3px 10px; background: #fef3c7; color: #92400e; }
+/* before: fixed sizes */
+.b .who b { white-space: nowrap; overflow: hidden; width: 150px; }
+.b .chip { width: 74px; height: 22px; overflow: hidden; white-space: nowrap; }
+.b .amt { width: 76px; overflow: hidden; white-space: nowrap; }
+/* after: flexible */
+.a .row { flex-wrap: wrap; }
+.a .who b { overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.a .meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.a .chip { white-space: nowrap; }
+.mark { outline: 2px solid #e11d48; outline-offset: 2px; border-radius: 4px; }
+</style></head><body>
+<div class="compare">
+  <section class="side before-side">
+    <span class="tag before">Before</span>
+    <div class="stage b">
+      <span class="lbl">Sample data</span>
+      <div class="row"><span class="av"></span><div class="who"><b>Ayşe Demir</b><span>Today, 14:20</span></div><span class="chip">Pending</span><span class="amt">₺240,00</span></div>
+      <span class="lbl">--stress: longer Turkish text, big amounts</span>
+      <div class="row"><span class="av"></span><div class="who"><b class="mark">Gülşah Çağlayan-Öztürkoğlu</b><span>Bugün, 14:20</span></div><span class="chip mark">Onay bekliyor</span><span class="amt mark">₺1.234.567,89</span></div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>The name is cut mid-word with no ellipsis: the person can't be told apart from "Gülşah Çağlayan".</li>
+      <li><span class="num">2</span>The Turkish status label doesn't fit its fixed-width chip.</li>
+      <li><span class="num">3</span>The amount is clipped. On a payments screen, that is a correctness bug.</li>
+    </ul>
+  </section>
+  <section class="side after-side">
+    <span class="tag after">After</span>
+    <div class="stage a">
+      <span class="lbl">Sample data</span>
+      <div class="row"><span class="av"></span><div class="who"><b>Ayşe Demir</b><span>Today, 14:20</span></div><div class="meta"><span class="amt">₺240,00</span><span class="chip">Pending</span></div></div>
+      <span class="lbl">--stress: longer Turkish text, big amounts</span>
+      <div class="row"><span class="av"></span><div class="who"><b>Gülşah Çağlayan-Öztürkoğlu</b><span>Bugün, 14:20</span></div><div class="meta"><span class="amt">₺1.234.567,89</span><span class="chip">Onay bekliyor</span></div></div>
+    </div>
+    <ul class="notes">
+      <li><span class="num">1</span>Names wrap to two lines, then clamp. The full name stays in the accessible label.</li>
+      <li><span class="num">2</span>Chips size to their text; amount and status stack in a column that can't collapse.</li>
+      <li><span class="num">3</span><span><code>render_audit.mjs --stress</code> lists these breaks under "Appears only under stress".</span></li>
+    </ul>
+  </section>
+</div>
+</body></html>

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/hero.png" alt="Interface Craft: an agent skill that reviews and improves interfaces across task flow, microcopy, states, accessibility and visual craft" width="100%">
+  <img src="assets/hero.png" alt="Interface Craft: an agent skill that renders, measures and reviews interfaces across task flow, microcopy, states, accessibility, motion and visual craft" width="100%">
 </p>
 
 <p align="center">
@@ -9,7 +9,7 @@
   <img alt="Platforms" src="https://img.shields.io/badge/web%20·%20SwiftUI%20·%20Compose-supported-2563eb">
 </p>
 
-**Interface Craft** is an [agent skill](https://docs.claude.com/en/docs/claude-code/skills) that turns your coding agent into a careful product-design reviewer. When you ask it to *"review this screen"*, *"make this form better"* or *"fix the empty states"*, it doesn't just add shadows. It checks whether the user can finish the task, understand the copy, recover from errors, and use the interface with a keyboard or screen reader. Then it polishes the details, using your existing design system.
+**Interface Craft** is an [agent skill](https://docs.claude.com/en/docs/claude-code/skills) that turns your coding agent into a careful product-design reviewer. It doesn't stop at one look at a screenshot: it renders the page, measures it at three widths in both themes, tests it with real-length data, and reads every region at zoom. When you ask it to *"review this screen"*, *"make this form better"* or *"fix the empty states"*, it doesn't just add shadows. It checks whether the user can finish the task, understand the copy, recover from errors, and use the interface with a keyboard or screen reader. Then it polishes the details, using your existing design system.
 
 It combines five bodies of practice in one skill, with rules for which one wins when they conflict:
 
@@ -33,6 +33,7 @@ The full list of principles and sources is in [Foundations: what we follow](#fou
 - [What it will not do](#what-it-will-not-do)
 - [Install](#install)
 - [Usage](#usage)
+- [Render audit](#render-audit-measure-what-the-browser-actually-drew)
 - [Theme audit](#theme-audit-catch-lightdark-bugs-before-users-do)
 - [Token audit](#token-audit-find-design-system-drift)
 - [Hit area audit](#hit-area-audit-taps-that-land-where-users-aim)
@@ -71,9 +72,9 @@ These mockups show the kind of changes the skill proposes. Their HTML sources ar
 
 ### 5. Visual craft: the details on top
 
-![Four visual details before and after: concentric corner radius, layered shadow instead of a gray border, tabular numbers, and an optically centered play icon](assets/visual-details.png)
+![Six visual details before and after: concentric corner radius; tone, line and shadow each with one job instead of a border plus a wide shadow; tabular numbers; an optically centered play icon; a strong ease-out curve instead of ease-in; and groups separated by twice the gap inside them](assets/visual-details.png)
 
-> **Why:** these details only matter once the basics above work, which is why polish comes last in the skill's priority order. The values (radius math, three-layer shadow, `tabular-nums`, `scale(0.96)` on press, and so on) are **starting defaults**. Your design tokens and what the rendered result looks like take precedence.
+> **Why:** these details only matter once the basics above work, which is why polish comes last in the skill's priority order. Surfaces follow one rule: tone separates regions, a line marks a boundary people must find (form fields need 3:1), and a shadow means "this floats". Motion never uses `ease-in`, because its slow start makes the response to a click look late, and that includes exits. The values (radius math, easing tokens, `tabular-nums`, `scale(0.97)` on press, the 2× grouping gap, and so on) are **starting defaults**. Your design tokens and the rendered result take precedence.
 
 ### 6. Light / dark consistency: pair colors from the same theme
 
@@ -99,6 +100,24 @@ These mockups show the kind of changes the skill proposes. Their HTML sources ar
 
 > **Why:** a button that "does nothing", or a tap that opens the neighbouring card, usually means the hit area doesn't match what's drawn. In SwiftUI, `.clipped()` cuts the drawing but not the hit area, so a fill-scaled image keeps catching taps with its invisible overflow. This is worst on iPad, where the frame is widest. The skill tap-tests every control next to media on the widest layout, and [`hit_area_audit.py`](skills/interface-craft/scripts/hit_area_audit.py) flags the pattern in code.
 
+### 10. Measure, don't eyeball
+
+![A payout settings card that looks finished at a glance, next to the same card annotated by the render audit: an icon button without a name, a hint at 2.56:1 contrast, an invisible layer covering Save, uneven section gaps, one row with different padding, a label 3px off the common edge, and plan cards of different heights](assets/render-audit.png)
+
+> **Why:** a single look at a screenshot catches the loud problems and misses this kind. The right side is real output of [`render_audit.mjs`](#render-audit-measure-what-the-browser-actually-drew) on [`examples/audit-demo.html`](examples/audit-demo.html). Each numbered box is a measurement (pixels, contrast ratios, what sits under a click). The agent confirms every box on the screenshot, then reads every tile at zoom for what measurement can't see.
+
+### 11. Real data: test what sample data hides
+
+![A payment list row that looks fine with sample data; under stress with a long Turkish name, a Turkish status and a seven-figure amount, the name, the status chip and the amount are all clipped. After: names wrap and clamp, chips size to their text, amount and status stack](assets/stress.png)
+
+> **Why:** layouts are built with "Ayşe Demir" and "₺240,00", then meet "Gülşah Çağlayan-Öztürkoğlu" and "₺1.234.567,89" in production. With `--stress`, the audit makes every string about 40% longer with Turkish characters, adds long unbreakable words and big amounts, and doubles the text size. The report lists what **appears only under stress**. `--states empty,loading,error` does the same for every state you can reach by URL.
+
+### 12. Generic look: make it the product's own
+
+![A template hero with an eyebrow pill, a gradient headline word, a purple glow, "Get started / Learn more" and three emoji feature cards, next to a hero that names the job, shows a real-looking invoice with Turkish data, has one primary action and specific facts](assets/generic.png)
+
+> **Why:** users now read the template look as "nobody designed this". For new screens and redesigns, the skill first names the surface type (app, marketing or docs) and writes a short direction: who it is for, the one thing that matters, and what makes this product unlike its competitors. Then it checks the result for generic-look tells (the audit flags eyebrow labels, gradient text, nested cards, side stripes, border plus wide shadow and emoji icons), copy clichés in English and Turkish, and the logo test: could a competitor ship this page unchanged? An existing brand system always wins over these heuristics.
+
 ---
 
 ## What the agent reports
@@ -112,24 +131,33 @@ For a broad review, the agent gives a short summary first and then one table sor
 | 3 | Error | `validation.ts:9` | “Invalid input” | “Use at least 8 characters. You have 6.” next to the field | The user knows exactly what to fix |
 | 4 | Polish | `Card.tsx:7` | `rounded-xl` on the card and on the inner button with `p-2` | Card `rounded-2xl` (8 + 8), button `rounded-lg` | Nested corners look concentric |
 
-It then lists the **checks it actually ran** (browser preview, keyboard pass, both themes, and so on) and what it could not verify. Dimensions with nothing to report are left out; the table is never padded.
+Each visual finding names the run it came from (for example *375px, dark, empty state* or *only under `--stress`*), so it can be found again.
+
+After the table come three short parts:
+- **Verification performed:** the checks it actually ran (audit runs, tiles read, keyboard pass, both themes), plus everything marked *Not verified*.
+- **Considered and rejected:** audit hits it dropped and why, for example "text-clipped on the ticker: intentional rotating word".
+- **Verdict:** *Block*, *Needs changes* or *Approve*. A screen with an open high-severity finding, such as content clipped at 320px or a control invisible in one theme, is never approved.
+
+Dimensions with nothing to report are left out; the table is never padded.
 
 ---
 
 ## How it works
 
-![Workflow: infer mode, inspect, scan in scope, diagnose, implement, verify and report; with the priority order and conflict-resolution chain](assets/workflow.png)
+![Workflow: infer mode, inspect, render and measure, scan and fresh eyes, diagnose, implement, verify and report; with the priority order and conflict-resolution chain](assets/workflow.png)
 
 1. **Mode is inferred:** *review* (report only), *improve* (fix and verify) or *create* (build it right from the start). You don't pick from a menu.
 2. **Scope follows the request.** A broad “review this screen” scans all seven dimensions. A narrow “only the microcopy” checks only that dimension plus whatever the change directly affects, such as a longer label still fitting.
-3. **Every finding is evidence-based:** what was observed, what it costs the user, and a concrete fix. Hypotheses are labeled as hypotheses. The skill never claims conversion gains or user testing it didn't do.
-4. **Fixed priority order:**
+3. **Render and measure before judging.** For web UI the agent runs the render audit (3 widths × 2 themes, plus stress text and states), opens every tile with a fixed set of lenses, and finishes with a fresh-eyes persona pass: first-timer, power user, low-vision and keyboard user, distracted phone user, and stress tester.
+4. **Every finding is evidence-based:** what was observed, what it costs the user, and a concrete fix. Hypotheses are labeled as hypotheses. The skill never claims conversion gains or user testing it didn't do.
+5. **Fixed priority order:**
    1. Task blockers and accessibility
    2. Errors, ambiguity and decision burden
    3. Wording, hierarchy and consistency
    4. Decorative polish
-5. **Conflict resolution:** `user intent > accessibility > platform conventions > existing design system > aesthetics`.
-6. **Proportional verification:** narrow and wide layouts, long text and both themes for visual work; keyboard, focus, loading, error and recovery for interaction work.
+6. **Cheapest fix first:** delete → use the platform → reuse a token or component → correct a value → add something new.
+7. **Conflict resolution:** `user intent > accessibility > platform conventions > existing design system > aesthetics`.
+8. **Proportional verification:** the audit is re-run after fixes, and a fix must not add hits in another run (usually dark mode or 375px). Beyond that: narrow and wide layouts, long text and both themes for visual work; keyboard, focus, loading, error and recovery for interaction work.
 
 ---
 
@@ -145,7 +173,10 @@ It then lists the **checks it actually ran** (browser preview, keyboard pass, bo
 <tr><td><b>Accessibility</b></td><td>Contrast (4.5:1 text, 3:1 non-text), target size, focus order and visibility, modal focus trap and return, labels and errors linked to fields, reduced motion, screen-reader names</td></tr>
 <tr><td><b>Light / dark consistency</b><br><sub>cross-cutting</sub></td><td>Fixed backgrounds with adaptive text (or the reverse), sheets and menus that stay light in dark mode, color assets without a dark variant, local color-scheme overrides, missing <code>color-scheme</code> on the web, and contrast checked separately in each theme</td></tr>
 <tr><td><b>Layout resilience</b><br><sub>cross-cutting</sub></td><td>Safe areas, keyboard covering fields or actions, narrow (320px / iPhone SE) and wide (iPad, landscape, split view) layouts, clipped controls at large text sizes, extreme data, skeleton/content parity, layout shift, image fallbacks</td></tr>
-<tr><td><b>Visual craft</b></td><td>Design-token drift (sprawling font sizes, off-grid spacing, one-off radii, fonts that ignore Dynamic Type); equal-height cards and reserved text lines in rows, grids and carousels; Concentric radius, layered shadows vs borders, tabular numbers, optical alignment, text wrapping, interruptible motion, <code>transition: all</code>, layout shift</td></tr>
+<tr><td><b>Visual craft</b></td><td>Design-token drift (sprawling font sizes, off-grid spacing, one-off radii, fonts that ignore Dynamic Type); near-miss alignment and uneven gaps; equal-height cards and reserved text lines in rows, grids and carousels; surface separation (tone for regions, lines for boundaries, shadows only for elevation); concentric radius, tabular numbers, optical alignment, text wrapping, <code>transition: all</code>, layout shift</td></tr>
+<tr><td><b>Motion</b></td><td>Whether something should animate at all (frequency gate, no motion on keyboard actions), strong ease-out curves for enter <i>and</i> exit, durations per component, interruptibility, origin-aware popovers, gesture thresholds, reduced motion</td></tr>
+<tr><td><b>Real data and states</b><br><sub>cross-cutting</sub></td><td>Layouts that only work with sample data: longer Turkish text, long unbreakable words, big amounts, 2× text size, empty / loading / error states, skeleton parity</td></tr>
+<tr><td><b>Generic look</b></td><td>Template patterns that make a UI read as auto-generated (eyebrow labels, gradient headlines, identical icon cards, nested cards, border + wide shadow), competing primary actions, accent sprawl, copy clichés in English and Turkish; judged against the surface type (app, marketing, docs)</td></tr>
 </table>
 
 <details>
@@ -256,10 +287,12 @@ The visual-craft layer is inspired by and adapted from [**make-interfaces-feel-b
 
 | Area | Techniques |
 |---|---|
-| Surfaces | Concentric border radius · optical alignment of icons · layered shadows instead of borders · subtle image outlines · minimum hit area |
+| Surfaces | Concentric border radius · optical alignment of icons · layered shadow rings (since 1.5: shadows mark elevation; tone and lines separate resting surfaces) · subtle image outlines · minimum hit area |
 | Typography | `text-wrap: balance` / `pretty` · font smoothing · tabular numbers |
 | Motion | Interruptible transitions · split and staggered enter animations · subtle exits · contextual icon animations · `scale(0.96)` on press · no animation on first render |
 | Performance | No `transition: all` · `will-change` only when needed |
+
+Since 1.5 the surface and motion rules are reconciled with later sources (see [section 7](#7-design-engineering-skills-we-learned-from)): shadows now mean elevation rather than replacing borders, and exits use a strong ease-out instead of ease-in.
 
 **What Interface Craft changes:** the values are **starting defaults** rather than rules, so design tokens and the rendered result win. It adds SwiftUI and Compose equivalents with OS-version checks, reduced-motion handling, a forced-colors caveat for shadow-only boundaries, and platform-specific target sizes (iOS 44pt, Android 48dp). Visual polish sits **last** in the priority order, after task, copy, states and accessibility.
 
@@ -300,6 +333,19 @@ These rules come from UX writing and ethical-design practice and are applied thr
 - **Real conditions:** smallest and largest widths, keyboard open, largest text size, slow network and failed images are all checked. Every finding names the device, width, text size or network condition behind it.
 - **Priority order:** blockers and accessibility, then errors, ambiguity and decision load, then wording and hierarchy, then polish.
 - **Conflict resolution:** `user intent > accessibility > platform conventions > existing design system > aesthetics`.
+
+### 7. Design-engineering skills we learned from
+
+Version 1.5 adds ideas from four open-source agent skills, paraphrased and reconciled with the rules above (see [NOTICE](NOTICE)):
+
+| Source | License | What we took |
+|---|---|---|
+| [emilkowalski/skills](https://github.com/emilkowalski/skills) (Emil Kowalski) | MIT | Motion: decide by frequency of use, never ease-in, easing tokens, durations per component, interruptibility, `scale(0.95)` not `scale(0)`, gesture thresholds, animation performance |
+| [jakubkrehel/skills](https://github.com/jakubkrehel/skills) (Jakub Krehel) | MIT | Stress harness with worst-case content, state workbench, variants on one axis, typography roles and size floors, the 2× grouping rule, escalation triggers, the cheapest-fix order |
+| [Taste Skill](https://github.com/Leonxlnx/taste-skill) (Leon Lin) | MIT | Generic-look tells, copy tells, logo and category tests, rendering at several widths before critique |
+| [Impeccable](https://github.com/pbakaus/impeccable) (Paul Bakaus) | Apache-2.0 | Surface modes (operate / persuade / read), direction before code, the anti-pattern catalogue, OKLCH palette guidance, persona pass, the 8 interactive states |
+
+Where they disagree, the skill picks one rule and says why. For example, Taste Skill bans resting shadows and hairlines, which dense product UIs can't follow. The skill instead gives tone, line and shadow each their own job.
 
 ---
 
@@ -360,10 +406,38 @@ The skill triggers automatically on broad interface requests. You can also call 
 /interface-craft check the onboarding on iPhone SE with the keyboard open and at the largest text size
 /interface-craft why do our screens feel inconsistent? run the token audit on src/
 /interface-craft the favorite button on the Discover cards does nothing on iPad
+/interface-craft review http://localhost:3000/checkout, things keep slipping past us
+/interface-craft this landing page looks generic, make it ours
 Bu ekranı incele, önce/sonra tablo ile raporla
 ```
 
 For narrow tasks it steps aside when a more specific skill is installed. For example, it defers to a dedicated UX-writing skill for copy-only work or an accessibility-audit skill for a WCAG audit. When no such skill is installed, it handles the task with only the relevant reference.
+
+---
+
+## Render audit: measure what the browser actually drew
+
+Looking at a screenshot once finds the loud problems and misses a 3px misalignment, one card with different padding, or a border that disappears in dark mode. [`render_audit.mjs`](skills/interface-craft/scripts/render_audit.mjs) opens the page in your installed Chrome or Edge and measures it at 375, 768 and 1440px, in light and dark:
+
+```bash
+cd skills/interface-craft/scripts && npm install      # once; no browser download
+node render_audit.mjs http://localhost:3000/checkout --out ui-audit
+node render_audit.mjs http://localhost:3000/invoices --stress --states empty,loading,error
+node render_audit.mjs --tile-image screenshot.png     # cut a screenshot into zoomed tiles
+```
+
+| Area | What it measures |
+|---|---|
+| Layout | Horizontal scroll, content cut by the viewport, missing mobile viewport, clipped or truncated text, overlapping text, content stuck under fixed bars, layout shift |
+| Alignment and rhythm | Left edges 2–4px off the common edge, rows almost aligned, uneven gaps, unequal cards in a row, repeated items with different padding or icon size, headings with more space below than above, weak grouping |
+| Color | WCAG contrast on the real composited background (alpha, opacity and oklch handled), placeholder contrast, form fields whose edges are too faint, light-gray body text |
+| Targets and focus | Controls covered by an invisible layer, targets under 24px (with the spacing exception), missing accessible names, Tab traversal without a visible focus style or landing on hidden elements |
+| Emphasis and tells | Competing filled primary buttons, accent hue sprawl, generic-look patterns, `transition: all`, `ease-in` |
+| Media and type | Broken, stretched or blurry images, tiny text, line height by role, iOS input zoom, type-scale sprawl, a token inventory (sizes, colors, radii, spacing, left edges) |
+
+`--stress` adds runs where every string is ~40% longer with Turkish characters and long unbreakable words, and runs with doubled text size. The report then lists what **appears only under stress**: layouts that are waiting for real data. `--states` audits each state through `?__state=…`.
+
+Each run writes `annotated.png` (numbered boxes that match `report.md`) and zoomed tiles. The agent opens every tile with a fixed set of lenses ([visual scan](skills/interface-craft/references/visual-scan.md)), then does a fresh-eyes persona pass. Hits are leads: the agent confirms each one on the screenshot and lists the hits it rejected, with reasons.
 
 ---
 
@@ -509,16 +583,22 @@ Static scanning can't see runtime frames, so the agent confirms every hit by tap
 ```text
 skills/interface-craft/
 ├── SKILL.md                         # workflow, routing, hard rules, output format
+├── NOTICE.md                        # credits for adapted open-source material
 ├── agents/openai.yaml               # optional Codex UI metadata
 └── references/                      # loaded only when the task needs them
+    ├── visual-scan.md               # render audit usage + tile-by-tile scan + persona pass
+    ├── stress-and-states.md         # stress runs, break harness, state workbench, variants
+    ├── generic-tells.md             # surface types, direction before code, generic-look tells
     ├── interaction-and-feedback.md  # Nielsen's 10 heuristics, flows, states, recovery
     ├── cognitive-principles.md      # Laws of UX as decision aids
     ├── microcopy.md                 # patterns, before → after, localization
     ├── accessibility.md             # WCAG 2.2 AA thresholds and checks
     ├── theming.md                   # light/dark consistency: pairing rules, patterns, audit
     ├── layout-resilience.md         # safe areas, keyboard, sizes, large text, loading & media
-    └── visual-craft.md              # concrete values + SwiftUI/Compose equivalents
+    └── visual-craft.md              # surfaces, type, spacing, motion values + SwiftUI/Compose
 skills/interface-craft/scripts/
+├── render_audit.mjs                 # renders the page and measures it (Playwright + installed Chrome)
+├── package.json                     # its only dependency: playwright-core
 ├── theme_audit.py                   # static scan for unverified fixed/adaptive color mixes
 ├── token_audit.py                   # static scan for font/spacing/radius drift
 └── hit_area_audit.py                # static scan for hit areas that differ from what's drawn
@@ -546,6 +626,7 @@ Please keep additions evidence-based and concrete. A new rule should name the pr
 ## Credits and license
 
 - Inspired by [**make-interfaces-feel-better**](https://github.com/jakubkrehel/make-interfaces-feel-better) by Jakub Krehel (MIT); the visual-craft values are adapted from it. See [NOTICE](NOTICE).
+- Motion, stress/state, generic-look and palette guidance adapted from [emilkowalski/skills](https://github.com/emilkowalski/skills) (MIT), [jakubkrehel/skills](https://github.com/jakubkrehel/skills) (MIT), [Taste Skill](https://github.com/Leonxlnx/taste-skill) (MIT) and [Impeccable](https://github.com/pbakaus/impeccable) (Apache-2.0); paraphrased, see [NOTICE](NOTICE).
 - Heuristics: Jakob Nielsen, [10 Usability Heuristics for User Interface Design](https://www.nngroup.com/articles/ten-usability-heuristics/). Only the heuristic names are used; the guidance is original.
 - Laws of UX: Jon Yablonski, [lawsofux.com](https://lawsofux.com/). Principle names link to the source; the guidance is original.
 - Accessibility thresholds reference [WCAG 2.2](https://www.w3.org/TR/WCAG22/).

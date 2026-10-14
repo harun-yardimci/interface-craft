@@ -29,3 +29,40 @@ Licensed under the MIT License:
 Adapted material: the visual-craft values in
 skills/interface-craft/references/visual-craft.md (concentric radius, layered
 shadows, image outlines, typography, motion and performance defaults).
+
+---
+
+The following works are also adapted (paraphrased and reconciled; no files
+are copied verbatim). The MIT permission notice above applies to each MIT
+work, with its own copyright line.
+
+jakubkrehel/skills
+https://github.com/jakubkrehel/skills
+Copyright (c) 2026 Jakub Krehel - MIT License
+Adapted: break / state-machine / variant ideas
+(references/stress-and-states.md), typography roles, size floors, grouping
+and control spacing (references/visual-craft.md), escalation triggers and
+cheapest-fix order (SKILL.md).
+
+emilkowalski/skills
+https://github.com/emilkowalski/skills
+Copyright (c) 2026 Emil Kowalski - MIT License
+Adapted: the motion section of references/visual-craft.md (frequency gate,
+easing tokens, durations, interruptibility, gestures, performance).
+
+Taste Skill
+https://github.com/Leonxlnx/taste-skill
+Copyright (c) 2026 Leonxlnx - MIT License
+Adapted: generic-look tells, copy tells and the logo/category tests in
+references/generic-tells.md.
+
+Impeccable
+https://github.com/pbakaus/impeccable
+Copyright 2025 Paul Bakaus - Apache License, Version 2.0
+https://www.apache.org/licenses/LICENSE-2.0
+Adapted: surface modes and direction before code
+(references/generic-tells.md), anti-pattern catalogue, OKLCH palette guidance
+(references/theming.md), persona pass (references/visual-scan.md), the
+interactive-state list (references/interaction-and-feedback.md). Changes:
+rules rewritten in our own words, reconciled with this skill's priorities,
+and scoped by surface type.

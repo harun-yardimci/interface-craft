@@ -1,0 +1,66 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<style>
+.stage { padding: 0; min-height: 0; overflow: hidden; display: block; }
+.page { padding: 26px 26px 22px; height: 100%; }
+/* before: the template */
+.t { background: radial-gradient(420px 220px at 80% 0%, rgba(139,92,246,.28), transparent 70%), #0f0b1f; color: #f5f3ff; text-align: center; }
+.t .eyebrow { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c4b5fd; border: 1px solid rgba(196,181,253,.4); border-radius: 999px; padding: 4px 10px; }
+.t h3 { font-size: 26px; line-height: 1.15; margin: 12px 0 8px; font-weight: 750; }
+.t h3 em { font-style: normal; background: linear-gradient(90deg,#a78bfa,#f0abfc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.t p { font-size: 12.5px; color: #c4b5fd; }
+.t .ctas { display: flex; gap: 8px; justify-content: center; margin: 14px 0 18px; }
+.t .ctas span { font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 999px; background: linear-gradient(90deg,#7c3aed,#c026d3); }
+.t .ctas span + span { background: rgba(255,255,255,.08); }
+.t .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.t .card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px; text-align: left; }
+.t .card i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; background: rgba(167,139,250,.25); font-style: normal; font-size: 12px; }
+.t .card b { display: block; font-size: 11.5px; margin: 6px 0 2px; }
+.t .card span { font-size: 10.5px; color: #a5a3c4; }
+/* after: grounded in the product */
+.o { background: #fbfbfa; color: #1c1917; }
+.o .top { display: grid; grid-template-columns: 1fr 1.05fr; gap: 18px; align-items: center; }
+.o h3 { font-size: 25px; line-height: 1.15; font-weight: 700; letter-spacing: -.02em; }
+.o p { font-size: 12.5px; color: #44403c; margin: 8px 0 12px; line-height: 1.45; }
+.o .cta { display: inline-block; font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 8px; background: #166534; color: #fff; }
+.o .cta + a { font-size: 12px; color: #44403c; margin-left: 10px; text-decoration: underline; text-underline-offset: 3px; }
+.o .inv { background: #fff; border-radius: 10px; box-shadow: 0 0 0 1px #e7e5e4; padding: 10px; font-size: 11px; }
+.o .inv .r { display: flex; justify-content: space-between; padding: 5px 0; border-top: 1px solid #f0efed; font-variant-numeric: tabular-nums; }
+.o .inv .r:first-child { border-top: 0; font-weight: 650; }
+.o .inv .paid { color: #166534; font-weight: 600; }
+.o .facts { display: flex; gap: 22px; margin-top: 18px; padding-top: 12px; border-top: 1px solid #e7e5e4; font-size: 11.5px; color: #44403c; }
+.o .facts b { display: block; font-size: 15px; color: #1c1917; font-variant-numeric: tabular-nums; }
+</style></head><body>
+<div class="compare">
+  <section class="side before-side">
+    <span class="tag before">Before</span>
+    <div class="stage"><div class="page t">
+      <span class="eyebrow">✦ AI-powered invoicing</span>
+      <h3>Invoicing, <em>reimagined</em> for the future</h3>
+      <p>Unlock seamless payments and elevate your business.</p>
+      <div class="ctas"><span>Get started</span><span>Learn more</span></div>
+      <div class="cards"><div class="card"><i>⚡</i><b>Lightning fast</b><span>Send in seconds</span></div><div class="card"><i>🔒</i><b>Secure</b><span>Bank-grade safety</span></div><div class="card"><i>✨</i><b>Smart</b><span>Powered by AI</span></div></div>
+    </div></div>
+    <ul class="notes">
+      <li><span class="num">1</span>An eyebrow pill, a gradient word and a purple glow: three template tells in one hero.</li>
+      <li><span class="num">2</span>The copy could sell anything: "Unlock seamless", "Get started", "Learn more".</li>
+      <li><span class="num">3</span>Three identical icon cards with emoji. Cover the logo and any competitor could ship this.</li>
+    </ul>
+  </section>
+  <section class="side after-side">
+    <span class="tag after">After</span>
+    <div class="stage"><div class="page o">
+      <div class="top">
+        <div><h3>Send an invoice in Turkish lira and see when it's paid</h3><p>e-Fatura compliant. Your customer pays by card or bank transfer from the link.</p><span class="cta">Create an invoice</span><a>See pricing</a></div>
+        <div class="inv"><div class="r"><span>INV-1042 · Moda Kahve</span><span>₺12.480,50</span></div><div class="r"><span>Sent 3 Oct</span><span>Opened 3 Oct</span></div><div class="r"><span>Paid by card</span><span class="paid">Paid 5 Oct</span></div></div>
+      </div>
+      <div class="facts"><div><b>e-Fatura</b>GİB integrated</div><div><b>T+1</b>payout to your bank</div><div><b>%1,49</b>per card payment</div></div>
+    </div></div>
+    <ul class="notes">
+      <li><span class="num">1</span>The headline names the job and the outcome; one primary action, named after what it does.</li>
+      <li><span class="num">2</span>The visual is the product itself: a real-looking invoice with locale-correct data.</li>
+      <li><span class="num">3</span>One accent and left-aligned text. The facts are specific enough that they could be checked.</li>
+    </ul>
+  </section>
+</div>
+</body></html>
