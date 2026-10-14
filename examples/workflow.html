@@ -2,11 +2,11 @@
 <html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
 <style>
 body { width: 1200px; padding: 36px; }
-.flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; align-items: stretch; }
+.flow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 14px; align-items: stretch; }
 .step { background: #fff; border-radius: 14px; box-shadow: var(--shadow-border); padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 8px; position: relative; }
 .step:not(:last-child)::after { content: "→"; position: absolute; right: -13px; top: 50%; transform: translateY(-50%); color: #a1a1aa; font-size: 16px; z-index: 1; }
 .n { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .06em; }
-.step h5 { font-size: 16px; font-weight: 650; }
+.step h5 { font-size: 15px; font-weight: 650; }
 .step p { font-size: 13px; color: #52525b; line-height: 1.45; }
 .step.key { background: #18181b; color: #fff; }
 .step.key p { color: #d4d4d8; } .step.key .n { color: #93c5fd; }
@@ -21,11 +21,12 @@ body { width: 1200px; padding: 36px; }
 </style></head><body>
 <div class="flow">
   <div class="step"><span class="n">01</span><h5>Infer mode</h5><p>Review, improve or create, taken from the request. No menu.</p></div>
-  <div class="step"><span class="n">02</span><h5>Inspect</h5><p>Code, tokens, components, copy, the main task. Visible vs unknown behavior.</p></div>
-  <div class="step"><span class="n">03</span><h5>Scan in scope</h5><p>All 7 dimensions for broad work; only the requested ones for narrow work.</p></div>
-  <div class="step key"><span class="n">04</span><h5>Diagnose</h5><p>Trigger → user consequence → concrete fix. Hypotheses labeled.</p></div>
-  <div class="step"><span class="n">05</span><h5>Implement</h5><p>Existing tokens and components; check API availability. Skipped in review mode.</p></div>
-  <div class="step"><span class="n">06</span><h5>Verify & report</h5><p>Only checks actually run. Priority-sorted table, limits stated.</p></div>
+  <div class="step"><span class="n">02</span><h5>Inspect</h5><p>Code, tokens, components, copy, the main task. Create: surface and direction first.</p></div>
+  <div class="step key"><span class="n">03</span><h5>Render & measure</h5><p>3 widths × 2 themes, stress text, states. Then every tile, every lens.</p></div>
+  <div class="step"><span class="n">04</span><h5>Scan & fresh eyes</h5><p>Dimensions in scope, then an unbiased persona pass.</p></div>
+  <div class="step"><span class="n">05</span><h5>Diagnose</h5><p>Trigger → user consequence → fix. Hypotheses labeled.</p></div>
+  <div class="step"><span class="n">06</span><h5>Implement</h5><p>Cheapest fix first, existing tokens. Skipped in review mode.</p></div>
+  <div class="step"><span class="n">07</span><h5>Verify & report</h5><p>Re-run the audit. Checks actually run, rejected hits, verdict.</p></div>
 </div>
 <div class="bar">
   <div class="box"><h6>Priority order</h6><div class="prio"><span class="p1">1 · Blockers & a11y</span><span class="p2">2 · Errors & ambiguity</span><span class="p3">3 · Wording & hierarchy</span><span class="p4">4 · Polish</span></div></div>

@@ -24,5 +24,15 @@ A signifier should communicate the action before interaction. Use established bu
 ## State and recovery
 Build the states that the real data flow needs: initial, empty, loading, partial, success and failure. Preserve input after recoverable errors; offer retry when meaningful. Prevent duplicate submissions while pending, but communicate why an action is unavailable. Only claim completion after confirmed success. Undo is often less disruptive than repeated confirmation; use explicit consequence confirmation for costly irreversible actions.
 
+## Interactive states and modern primitives
+- Every control has **8 states** to design and check: default, hover, focus-visible, active, disabled, loading, error, success.
+- Focus ring via `:focus-visible`: 2px outline, 2px offset, ≥ 3:1 against the background **in both themes**. Never `outline: none` without a replacement.
+- Hover styles only under `@media (hover: hover)`. Touch devices need the same affordance through the default style.
+- **One primary action per view.** More than ~3 secondary actions go into a menu.
+- **Validate on blur**, not on every keystroke. Re-validate on input once a field has shown an error.
+- **Optimistic UI** only for low-stakes, easily reversible actions (likes, toggles), never for payments or deletions.
+- Prefer the platform: `<dialog>` (focus trap, `Esc`, top layer), the Popover API, `inert` for background content, CSS anchor positioning for popovers where supported, `overscroll-behavior: contain` on scrollable overlays so the page behind does not scroll.
+- Lists of options with arrow-key navigation (menus, tabs, radio groups) use roving `tabindex`.
+
 ## Efficiency and help
 Offer shortcuts and batch actions when repeated usage justifies them, retaining a visible standard route. Place examples or help beside the confusing field rather than forcing a tutorial. Test with a realistic task, invalid input, interrupted work and back navigation. A heuristic pass cannot replace observed user research.

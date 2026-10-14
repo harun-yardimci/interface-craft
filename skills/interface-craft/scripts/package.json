@@ -1,0 +1,8 @@
+{
+  "name": "interface-craft-scripts",
+  "private": true,
+  "description": "Dependencies for render_audit.mjs (uses the installed Chrome/Edge; no browser download)",
+  "dependencies": {
+    "playwright-core": "^1.64.0"
+  }
+}

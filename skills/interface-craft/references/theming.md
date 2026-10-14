@@ -28,6 +28,17 @@ By default, a foreground comes from the **same theme source** as the background 
 | Status bar / system UI style fixed | Unreadable status bar in one theme | Let the system choose, or set it per theme |
 | Brand color reused as text on dark | Blue links or accents fail contrast on dark surfaces | Use a lighter tone of the brand color for dark (`primary` role per theme) |
 
+## Building a palette that survives both themes
+- **Work in OKLCH** (`oklch(L C H)`): equal L steps look equally far apart, which HSL does not do. Lower chroma near white and black, or colors turn garish or muddy.
+- **Tint the neutrals**: give grays a little of the brand hue (chroma ~0.005–0.015). Pure `#000`/`#fff` grays look harsh next to colored UI. Body text is near-black ink, not `#000`.
+- **Hues within ~15° are the same color.** Two "different" blues that close look like a mistake; merge them into one token.
+- **Every ramp step has a job** (surface, hover, border, text-muted, text…). Primitives are named by hue (`blue-600`), semantic tokens by role (`accent`, `border-subtle`), and components use only semantic tokens.
+- **Choose the color strategy first.** Apps: neutrals plus **one** accent, which fills only the primary action (plus at most one other element), with status colors reserved for status. Red/green on something that is not an error or success is a bug.
+- **Dark surfaces**: base around L 0.13–0.18, raised levels about +0.03–0.05 L each (e.g. 0.15 / 0.19 / 0.23). Desaturate and lighten accents for dark. Body text slightly lighter in weight or color than in light mode to avoid glow.
+- **Heavy use of `rgba()` overlays** for surfaces usually means the palette is missing steps. Translucent fills stack unpredictably across themes.
+- **Theme switch**: suppress transitions while switching (a `.theme-switching * { transition: none !important }` class for one frame), or every token animates.
+- **Gradients** interpolate `in oklab` by default; use `in oklch` for two-hue gradients that turn gray in the middle.
+
 ## How to audit
 1. **Static scan first.** Run `scripts/theme_audit.py <path>` if Python is available. It lists hardcoded colors and fixed-vs-adaptive pairings per platform (SwiftUI/UIKit, Compose/XML, CSS/Tailwind/JSX). Treat hits as leads, not verdicts: intentional brand surfaces are fine when their foreground is fixed too.
 2. **Render both themes.** Check the same screen and state side by side:

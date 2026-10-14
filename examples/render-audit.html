@@ -1,0 +1,34 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css">
+<!-- Images are real output of: node skills/interface-craft/scripts/render_audit.mjs examples/audit-demo.html --viewports 520x480 --themes light -->
+<style>
+.shot { width: 100%; border-radius: 10px; box-shadow: 0 0 0 1px rgba(0,0,0,.06); display: block; }
+.stage { padding: 20px; min-height: 0; }
+.find { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; font-size: 13.5px; line-height: 1.4; color: #3f3f46; }
+.find li { display: flex; gap: 8px; }
+.id { flex: none; min-width: 20px; height: 18px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; display: grid; place-items: center; padding: 0 4px; margin-top: 1px; }
+.e { background: #e11d48; } .w { background: #d97706; }
+.lead { font-size: 14.5px; line-height: 1.45; color: #3f3f46; }
+</style></head><body>
+<div class="compare">
+  <section class="side before-side">
+    <span class="tag before">One look</span>
+    <div class="stage"><img class="shot" src="img/audit-demo.png" alt=""></div>
+    <p class="lead">A payout settings card that looks finished at a glance. A single screenshot review usually ends here: "clean, maybe tighten the copy".</p>
+  </section>
+  <section class="side after-side">
+    <span class="tag after">Measured</span>
+    <div class="stage"><img class="shot" src="img/audit-demo-annotated.png" alt=""></div>
+    <ul class="find">
+      <li><span class="id e">1</span>Icon button has no accessible name</li>
+      <li><span class="id e">2</span>Hint text 2.56:1, needs 4.5:1</li>
+      <li><span class="id e">3</span><span>Invisible layer covers <b>Save</b>: clicks go nowhere</span></li>
+      <li><span class="id w">4</span>Section gaps 14 / 18 / 20px</li>
+      <li><span class="id w">5</span>One row has 9px padding, the rest 12px</li>
+      <li><span class="id w">6</span>"Currency" starts 3px off the common edge</li>
+      <li><span class="id w">7</span>Plan cards 72 / 94px tall in one row</li>
+      <li><span class="id" style="background:#2563eb">i</span>Blue boxes: smaller targets and nested cards, for a visual check</li>
+    </ul>
+  </section>
+</div>
+</body></html>

@@ -23,10 +23,19 @@ Interface text: buttons, labels, helper text, statuses, errors, empty states, co
 | Disabled controls | Explain the prerequisite next to the control (a tooltip on an unfocusable button doesn't count) | Gray "Devam" → "Devam etmek için koşulları kabul edin" under the button |
 | Trust-sensitive | Make cost, renewal, permissions explicit; no false urgency, no guilt opt-outs | "Hayır, tasarruf etmek istemiyorum" → "Şimdi değil" · "Ücretsiz dene" → "7 gün ücretsiz, sonra ₺149,99/ay. İstediğin zaman iptal et." |
 
+More rules:
+- **Undo beats confirmation** for reversible actions ("Silindi · Geri al"). Keep confirmation dialogs for expensive, irreversible ones.
+- **Toggles and checkboxes describe the ON state** ("E-posta bildirimleri", not "Bildirimleri kapat").
+- **Placeholders show an example**, never the label ("ornek@alanadi.com").
+- **Labels are verb + object, with the count** where useful: "5 öğeyi sil".
+- **Keep one glossary**: one term per concept across the product.
+- **No humor in errors**, payments or data loss.
+- **Generic copy** (seamless, unlock, "Hemen başla", "Daha fazla bilgi") and placeholder data (John Doe, Acme, 99.99%) make a screen look unfinished. See the copy tells in [generic-tells](generic-tells.md).
+
 ## Localization
 - Use the project's i18n system and plural rules; never concatenate sentence fragments.
 - Format numbers, currency and dates by locale (`₺1.234,50`, `30 Eyl 2026` for tr-TR).
-- Allow ~30–40% text growth; German and Turkish strings often run longer than English.
+- Allow ~30–40% text growth; German and Turkish strings often run longer than English (Finnish up to 40%). Test it with `render_audit.mjs --stress`, which lengthens every string by ~40% with Turkish characters.
 - Turkish: mind case rules (`i/İ`, `ı/I` - use locale-aware `toLocaleUpperCase('tr-TR')`); watch vowel-harmony suffixes on dynamic values ("{name}'e/'a") - rephrase to avoid attaching suffixes to variables when possible.
 - Pick one form of address (sen / siz) and keep it across the product.
 
