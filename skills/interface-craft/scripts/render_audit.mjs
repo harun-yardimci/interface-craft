@@ -815,7 +815,7 @@ async function focusAudit(page, maxTabs) {
 // ---------- dropdown chevrons: measured from pixels, because the browser paints the native arrow ----------
 // A native <select> arrow ignores padding-right and sits at a browser/OS-specific inset, so a select with
 // custom padding, radius or border usually looks lopsided (text 24px from the left, arrow 8px from the right).
-async function dropdownAudit(page, maxPerRule, maxHeight) {
+async function dropdownAudit(page, maxPerRule, maxHeight, fullShot = null, shotWidth = 0) {
   const cands = await page.evaluate(() => {
     window.scrollTo(0, 0); // rects in page coordinates must match the full-page screenshot
     const sel = window.__iaSel || (el => el.tagName.toLowerCase());
@@ -862,14 +862,17 @@ async function dropdownAudit(page, maxPerRule, maxHeight) {
   });
   const findings = [], counts = {};
   const add = (rule, sev, c, msg) => { counts[rule] = (counts[rule] || 0) + 1; if (counts[rule] <= maxPerRule) findings.push({ rule, sev, sel: c.sel, rect: { x: Math.round(c.rect.x), y: Math.round(c.rect.y), w: Math.round(c.rect.w), h: Math.round(c.rect.h) }, text: c.text, msg }); };
-  // painted arrows (native select, picker indicator, background-image chevron): one full-page shot per run,
-  // decoded once, then every candidate is measured from that canvas
+  // painted arrows (native select, picker indicator, background-image chevron): measured from the run's
+  // full-page shot (full.png, same scroll-0 state), decoded once; a fresh shot only if none was passed
   const needPix = cands.filter(c => !c.icon && (c.isSelect || c.picker) && c.rect.y + c.rect.h <= maxHeight);
   const painted = new Map();
   if (needPix.length) {
-    const width = await page.evaluate(() => document.documentElement.clientWidth);
-    const docH = await page.evaluate(() => Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight || 0));
-    const shot = await page.screenshot({ fullPage: true, animations: 'disabled', clip: { x: 0, y: 0, width, height: Math.min(docH, maxHeight) } }).catch(() => null);
+    let shot = fullShot, width = shotWidth;
+    if (!shot) {
+      width = await page.evaluate(() => document.documentElement.clientWidth);
+      const docH = await page.evaluate(() => Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight || 0));
+      shot = await page.screenshot({ fullPage: true, animations: 'disabled', clip: { x: 0, y: 0, width, height: Math.min(docH, maxHeight) } }).catch(() => null);
+    }
     if (shot) {
       const boxes = needPix.map(c => {
         const inner = c.rect.w - c.bl - c.br;
@@ -929,7 +932,7 @@ async function dropdownAudit(page, maxPerRule, maxHeight) {
 
 // ---------- fonts, optical centring and native control details (things the DOM does not show) ----------
 async function controlsAudit(page, opts) {
-  return page.evaluate(async ({ theme, maxPer }) => {
+  const res = await page.evaluate(async ({ theme, maxPer, cssCache }) => {
     const sel = window.__iaSel || (el => el.tagName.toLowerCase());
     const out = [], counts = {};
     const rectOf = el => { const r = el.getBoundingClientRect(); return { x: Math.round(r.left + scrollX), y: Math.round(r.top + scrollY), w: Math.round(r.width), h: Math.round(r.height) }; };
@@ -950,6 +953,7 @@ async function controlsAudit(page, opts) {
     const shownText = el => el.matches('input, select, textarea') ? (el.value || '') : shownTextNodes(el).map(n => n.textContent).join(' ').replace(/\s+/g, ' ').trim();
     const ownText = el => [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
     const firstFam = ff => ff.split(',')[0].trim().replace(/^["']|["']$/g, '');
+    const quoteFam = fam => '"' + fam.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"'; // a quote in the name must not break the font string
     const GENERIC = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-[a-z-]+|-apple-system|BlinkMacSystemFont|emoji|math|inherit|initial)$/i;
     try { await document.fonts.ready; } catch { /* ignore */ }
     const ctx = document.createElement('canvas').getContext('2d');
@@ -962,8 +966,8 @@ async function controlsAudit(page, opts) {
     const TR = 'ğĞşŞıİçÇöÖüÜ₺';
     for (const [fam, els] of byFam) {
       const used = [...new Set(els.flatMap(e => [...ownText(e)]).filter(ch => TR.includes(ch)))];
-      try { await document.fonts.load(`16px "${fam}"`, 'Hamburgefonstiv' + used.join('')); } catch { /* ignore */ }
-      const w = (s, fb) => { ctx.font = `40px "${fam}", ${fb}`; return ctx.measureText(s).width; };
+      try { await document.fonts.load(`16px ${quoteFam(fam)}`, 'Hamburgefonstiv' + used.join('')); } catch { /* ignore */ }
+      const w = (s, fb) => { ctx.font = `40px ${quoteFam(fam)}, ${fb}`; return ctx.measureText(s).width; };
       const present = Math.abs(w('Hamburgefonstiv', 'serif') - w('Hamburgefonstiv', 'monospace')) < 0.5;
       if (!present) { if (webFams.has(fam)) add('font-not-rendered', 'warn', els[0], `"${fam}" is declared with @font-face but did not render (failed or blocked load?) - ${els.length} elements show the fallback font`); continue; }
       const missing = used.filter(ch => Math.abs(w(ch, 'serif') - w(ch, 'monospace')) >= 0.5);
@@ -972,7 +976,7 @@ async function controlsAudit(page, opts) {
 
     // 2. synthetic bold / italic: the weight or style used was never loaded, so the browser fakes it
     for (const [fam, els] of byFam) {
-      const ff = faces.filter(f => firstFam(f.family) === fam);
+      const ff = faces.filter(f => firstFam(f.family) === fam && f.status !== 'error'); // a face that failed to load is not available
       if (!ff.length) continue;
       const range = f => { const p = String(f.weight).split(/\s+/).map(v => v === 'normal' ? 400 : v === 'bold' ? 700 : parseFloat(v)); return [p[0], p[1] ?? p[0]]; };
       const combos = new Map();
@@ -1004,10 +1008,12 @@ async function controlsAudit(page, opts) {
       if (r.height < 16 || r.height > 72 || r.width > 480) continue;
       const label = shownText(el);
       if (!label || label.length > 40) continue;
-      const tn = shownTextNodes(el)[0]; if (!tn) continue;
-      const rg = document.createRange(); rg.selectNodeContents(tn);
-      const lines = [...rg.getClientRects()].filter(q => q.width > 0);
-      if (!lines.length || new Set(lines.map(q => Math.round(q.top))).size > 1) continue; // wrapped: skip
+      const nodes = shownTextNodes(el), tn = nodes[0]; if (!tn) continue;
+      const rectsOf = n => { const rg = document.createRange(); rg.selectNodeContents(n); return [...rg.getClientRects()].filter(q => q.width > 0); };
+      const lines = rectsOf(tn);
+      // one line only: a wrapped label, or a title with a subtitle in another node, is not a centred label
+      const tops = nodes.flatMap(rectsOf).map(q => q.top);
+      if (!lines.length || Math.max(...tops) - Math.min(...tops) > 2) continue;
       const s = cs(tn.parentElement), m = metrics(s);
       if (!m.asc || !m.cap) continue;
       const baseline = lines[0].top + m.asc, capMid = baseline - m.cap / 2;
@@ -1020,8 +1026,15 @@ async function controlsAudit(page, opts) {
 
     // stylesheet text (cssRules drop vendor pseudos like ::-ms-reveal, so read the source)
     let css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n');
+    // stylesheet sources are cached across runs (viewports × themes × stress): same files, same text
+    const fetchedCss = {};
     for (const l of document.querySelectorAll('link[rel~=stylesheet][href]')) {
-      try { const u = new URL(l.href, location.href); if (u.origin === location.origin || u.protocol === 'file:') css += '\n' + await (await fetch(u)).text(); } catch { /* cross-origin or blocked: unknown */ }
+      try {
+        const u = new URL(l.href, location.href);
+        if (u.origin !== location.origin && u.protocol !== 'file:') continue; // cross-origin: unknown
+        if (!(u.href in cssCache)) fetchedCss[u.href] = await (await fetch(u)).text();
+        css += '\n' + (cssCache[u.href] ?? fetchedCss[u.href]);
+      } catch { /* blocked: unknown */ }
     }
     // a button that overlaps the field or sits right next to it (≤ 8px), on the same line
     const near = (el, re) => {
@@ -1105,14 +1118,15 @@ async function controlsAudit(page, opts) {
         const vals = new Map(); for (const el of els) { const v = get(el); if (v == null) continue; if (!vals.has(v)) vals.set(v, []); vals.get(v).push(el); }
         if (vals.size > limit) { const s = [...vals.entries()].sort((a, b) => b[1].length - a[1].length); add('inconsistent-style', 'warn', s.at(-1)[1][0], `${kind}s on this page mix ${vals.size} ${name}s: ${s.map(([v, e]) => `${v} ×${e.length}`).join(', ')}`); }
       };
-      cat('typeface', el => firstFam(cs(el).fontFamily), 1);
+      // icon buttons draw no text, so their typeface and weight are invisible
+      if (kind !== 'icon button') cat('typeface', el => firstFam(cs(el).fontFamily), 1);
       // weights: two values ≤ 50 apart (550 / 600 / 650) are drift; regular vs bold is a choice
-      if (kind !== 'field') {
+      if (kind !== 'field' && kind !== 'icon button') {
         const ws = new Map(); for (const el of els) { const w = Math.round(px(cs(el).fontWeight)); if (!ws.has(w)) ws.set(w, []); ws.get(w).push(el); }
         const wl = [...ws.keys()].sort((a, b) => a - b), close = wl.filter((w, i) => (i && w - wl[i - 1] <= 50) || (i < wl.length - 1 && wl[i + 1] - w <= 50));
         if (close.length >= 2) { const minor = close.reduce((a, b) => ws.get(b).length < ws.get(a).length ? b : a); add('inconsistent-style', 'warn', ws.get(minor)[0], `${kind}s on this page use nearly identical weights ${close.join(' / ')} (${close.map(w => '×' + ws.get(w).length).join(', ')}) - pick one`); }
       }
-      if (kind === 'button' || kind === 'chip') cat('letter case', el => { const t = shownText(el); return cs(el).textTransform === 'uppercase' || (t.length > 2 && t === t.toLocaleUpperCase('tr-TR') && t !== t.toLocaleLowerCase('tr-TR')) ? 'UPPERCASE' : 'normal case'; }, 1);
+      if (kind === 'button' || kind === 'chip') cat('letter case', el => { const t = shownText(el); return cs(el).textTransform === 'uppercase' || (/\p{Lu}{5,}/u.test(t) && t === t.toLocaleUpperCase('tr-TR')) ? 'UPPERCASE' : 'normal case'; }, 1); // ≤ 4-letter acronyms (PDF, PRO) are words, not styling
       if (kind === 'button') cat('icon position', el => { const i = iconOf(el); if (!i) return null; const q = i.getBoundingClientRect(), r = el.getBoundingClientRect(); return (q.left + q.right) / 2 < (r.left + r.right) / 2 ? 'icon before text' : 'icon after text'; }, 1);
       // colors: fills that are almost, but not exactly, the same
       const fills = new Map();
@@ -1126,8 +1140,10 @@ async function controlsAudit(page, opts) {
       if (radiiN > 3) add('inconsistent-style', 'info', els[0], `${kind}s use ${radiiN} different corner radii on one page - usually 1-2 is enough`);
     }
 
-    return { findings: out, counts };
-  }, { theme: opts.theme, maxPer: opts.maxPerRule });
+    return { findings: out, counts, fetchedCss };
+  }, { theme: opts.theme, maxPer: opts.maxPerRule, cssCache: opts.cssCache || {} });
+  if (opts.cssCache) Object.assign(opts.cssCache, res.fetchedCss);
+  return res;
 }
 
 async function annotate(page, items) {
@@ -1287,6 +1303,7 @@ async function main() {
   await mkdir(o.out, { recursive: true });
   const runs = [], failedRuns = [];
   const shotHash = {};
+  const cssCache = {}; // stylesheet URL -> source text, shared by every run's controlsAudit
   const targets = [{ label: '', url }];
   if (o.states) for (const st of o.states.split(',').map(x => x.trim()).filter(Boolean)) {
     const u = new URL(url); u.searchParams.set(o.stateParam, st);
@@ -1365,7 +1382,7 @@ async function main() {
       const docH = await page.evaluate(() => Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight || 0));
       const capH = Math.min(docH, o.maxHeight);
       if (docH > o.maxHeight) notes.push(`page is ${docH}px tall; screenshots cut at ${o.maxHeight}px`);
-      await page.screenshot({ path: path.join(dir, 'full.png'), fullPage: true, animations: 'disabled', clip: { x: 0, y: 0, width: vp.width, height: capH } });
+      const fullShot = await page.screenshot({ path: path.join(dir, 'full.png'), fullPage: true, animations: 'disabled', clip: { x: 0, y: 0, width: vp.width, height: capH } });
 
       let tiles = null, tileGrid = '';
       if (o.tiles) {
@@ -1390,8 +1407,8 @@ async function main() {
       const res = await page.evaluate(pageAudit, { maxPerRule: o.maxPerRule, mobile, touch: mobile, vpWidth: vp.width });
       let focus = null;
       if (o.focus && !job.stress) focus = await focusAudit(page, 60).catch(e => { notes.push('focus traversal failed: ' + e.message); return null; });
-      const dd = await dropdownAudit(page, o.maxPerRule, o.maxHeight).catch(e => { notes.push('dropdown check failed: ' + e.message.split('\n')[0]); return { findings: [], counts: {} }; });
-      const ca = await controlsAudit(page, { theme, maxPerRule: o.maxPerRule }).catch(e => { notes.push('font/control check failed: ' + e.message.split('\n')[0]); return { findings: [], counts: {} }; });
+      const dd = await dropdownAudit(page, o.maxPerRule, o.maxHeight, fullShot, vp.width).catch(e => { notes.push('dropdown check failed: ' + e.message.split('\n')[0]); return { findings: [], counts: {} }; });
+      const ca = await controlsAudit(page, { theme, maxPerRule: o.maxPerRule, cssCache }).catch(e => { notes.push('font/control check failed: ' + e.message.split('\n')[0]); return { findings: [], counts: {} }; });
       for (const x of [dd, ca]) {
         for (const [rule, n] of Object.entries(x.counts)) res.perRule[rule] = (res.perRule[rule] || 0) + n;
         for (const f of x.findings) res.allKeys.push(f.rule + '|' + f.sel);
