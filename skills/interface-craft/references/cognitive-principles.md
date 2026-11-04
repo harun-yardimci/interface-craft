@@ -32,13 +32,13 @@ Profile, settings and task lists drift into a "junk drawer": every destination i
 
 **Rows show their value.** A row that only names a destination forces a tap to learn the current state. Show it in the trailing slot: "Adresler · 2 kayıtlı", "Ödeme yöntemleri · Visa ·· 4242", "Dil · Türkçe". A single binary setting is an inline toggle on the row, not a drill-in screen with one switch. Trailing values truncate before the label does, and the row's accessible name includes the value.
 
-**List rows: one title, one meta line.**
+**Task and navigation lists: one title, one meta line.** Content lists (messages, mail, notifications, search results) are different: a preview line is the content, so keep their natural height (see the repeated-content section in visual craft).
 - Descriptions, tags, avatars and full timestamps on every row turn a list into a wall. Keep the title plus one short meta line ("17:00 · İş"); move the rest to the detail view (progressive disclosure, never hiding cost or consequence).
 - **Don't repeat what the context already says.** Under a "Bugün" header, each row needs the time, not "Due: 10/24/2026 5:00 PM". Use relative and contextual dates (Bugün, Yarın, Cuma) and full dates only where ambiguity starts.
-- **Filter by the axis people navigate by.** Task lists are usually opened by time (Tümü / Bugün / Yaklaşan), not by priority. Show a secondary attribute (priority, label) as a small indicator on the row; an indicator that differs only by color also needs a text or accessible label (e.g. `accessibilityLabel("Yüksek öncelik")`), or a different shape.
+- **Filter by the axis people navigate by.** Find the axis from usage or the product's main task rather than assuming it; for many task lists it is time (Tümü / Bugün / Yaklaşan) rather than priority. Show a secondary attribute (priority, label) as a small indicator on the row; an indicator that differs only by color also needs a text or accessible label (e.g. `accessibilityLabel("Yüksek öncelik")`), or a different shape.
 - **Add actions where the list ends.** A FAB that covers the last row's content or controls is a layering bug; an inline "Görev ekle" row at the end of a short list, or bottom padding equal to the FAB height plus margin, fixes it.
 
-Check: count the distinct colors, type sizes and fields per row before and after. If a row still needs two lines of meta, the list is probably a table or a set of cards.
+Check: count the distinct colors, type sizes and fields per row before and after.
 
 ## Secondary catalog (apply only with a concrete fit)
 | Concept | Use when / limit |

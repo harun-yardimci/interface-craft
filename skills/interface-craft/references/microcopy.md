@@ -21,8 +21,8 @@ Interface text: buttons, labels, helper text, statuses, errors, empty states, co
 | Empty states | Distinguish no data / no results / failed load; give the next step | "Veri yok" → "Henüz fatura yok. İlk faturanı oluştur." · "Aramanızla eşleşen sonuç yok. Filtreleri temizle." |
 | Pending / success | Describe the real state; never claim success before confirmation | "Kaydedildi!" (optimistic) → "Kaydediliyor…" → "Kaydedildi" |
 | Disabled controls | Explain the prerequisite next to the control (a tooltip on an unfocusable button doesn't count) | Gray "Devam" → "Devam etmek için koşulları kabul edin" under the button |
-| Status summaries and progress | Say where things stand and what comes next; whole numbers; no cheerleading | "1/5 tasks completed (20.00%) · Keep going! You can do it!!" → "5 görevden 1'i bitti · Bugün 4 kaldı, sıradaki 16:00" |
-| Routine destructive actions | Sentence case, plain verb; the consequence goes in the confirmation, not the button's volume | "LOG OUT" → "Çıkış yap" |
+| Status summaries and progress | Say where things stand and what comes next; whole numbers; no cheerleading | "1/5 tasks completed (20.00%) · Keep going! You can do it!!" → "Bugün: 1/5 tamamlandı · 4 görev kaldı, sıradaki 16:00" (no suffix on the number: 1'i, 2'si, 6'sı) |
+| Routine destructive actions | Sentence case, plain verb; quiet styling. Log out is reversible (sign in again), so no confirmation unless something is lost: unsynced data, a draft | "LOG OUT" → "Çıkış yap"; with pending sync: "Çıkış yapılsın mı? 3 kayıt henüz eşitlenmedi." |
 | Trust-sensitive | Make cost, renewal, permissions explicit; no false urgency, no guilt opt-outs | "Hayır, tasarruf etmek istemiyorum" → "Şimdi değil" · "Ücretsiz dene" → "7 gün ücretsiz, sonra ₺149,99/ay. İstediğin zaman iptal et." |
 
 More rules:
