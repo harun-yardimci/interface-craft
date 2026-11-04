@@ -21,6 +21,8 @@ Interface text: buttons, labels, helper text, statuses, errors, empty states, co
 | Empty states | Distinguish no data / no results / failed load; give the next step | "Veri yok" → "Henüz fatura yok. İlk faturanı oluştur." · "Aramanızla eşleşen sonuç yok. Filtreleri temizle." |
 | Pending / success | Describe the real state; never claim success before confirmation | "Kaydedildi!" (optimistic) → "Kaydediliyor…" → "Kaydedildi" |
 | Disabled controls | Explain the prerequisite next to the control (a tooltip on an unfocusable button doesn't count) | Gray "Devam" → "Devam etmek için koşulları kabul edin" under the button |
+| Status summaries and progress | Say where things stand and what comes next; whole numbers; no cheerleading | "1/5 tasks completed (20.00%) · Keep going! You can do it!!" → "Bugün: 1/5 tamamlandı · 4 görev kaldı, sıradaki 16:00" (no suffix on the number: 1'i, 2'si, 6'sı) |
+| Routine destructive actions | Sentence case, plain verb; quiet styling. Log out is reversible (sign in again), so no confirmation unless something is lost: unsynced data, a draft | "LOG OUT" → "Çıkış yap"; with pending sync: "Çıkış yapılsın mı? 3 kayıt henüz eşitlenmedi." |
 | Trust-sensitive | Make cost, renewal, permissions explicit; no false urgency, no guilt opt-outs | "Hayır, tasarruf etmek istemiyorum" → "Şimdi değil" · "Ücretsiz dene" → "7 gün ücretsiz, sonra ₺149,99/ay. İstediğin zaman iptal et." |
 
 More rules:
@@ -28,6 +30,8 @@ More rules:
 - **Toggles and checkboxes describe the ON state** ("E-posta bildirimleri", not "Bildirimleri kapat").
 - **Placeholders show an example**, never the label ("ornek@alanadi.com").
 - **Labels are verb + object, with the count** where useful: "5 öğeyi sil".
+- **No false precision.** "20.00%" on five items, "4.6 min read" or "3.0 GB" with meaningless decimals look computed, not designed. Round to what the user can act on, or use counts ("5'te 1").
+- **No ALL CAPS on buttons and labels** unless the platform or brand system requires it: it reads louder, is slower to read, and breaks with Turkish `i/İ` casing.
 - **Keep one glossary**: one term per concept across the product.
 - **No humor in errors**, payments or data loss.
 - **Generic copy** (seamless, unlock, "Hemen başla", "Daha fazla bilgi") and placeholder data (John Doe, Acme, 99.99%) make a screen look unfinished. See the copy tells in [generic-tells](generic-tells.md).

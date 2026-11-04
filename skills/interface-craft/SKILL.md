@@ -34,12 +34,12 @@ Infer the mode from the request; do not present a menu:
 - If `make-interfaces-feel-better` is installed and the task is heavy on web animation/surface code, load its reference files for full code samples.
 
 ## Reference routing (load only what the task needs)
-- [Visual scan](references/visual-scan.md): web render audit (`scripts/render_audit.mjs`: overflow, clipping, overlap, real contrast, near-miss alignment, uneven gaps, unequal cards, covered/small targets, focus, images, token inventory) + region-by-region tile scan. Default for any visual review of web UI.
+- [Visual scan](references/visual-scan.md): web render audit (`scripts/render_audit.mjs`: overflow, clipping, overlap, real contrast, near-miss alignment, lopsided select/dropdown chevrons, Turkish glyph fallback and faked weights, off-centre labels, native control details, page-wide component consistency, uneven gaps, unequal cards, covered/small targets, focus, images, token inventory) + region-by-region tile scan. Default for any visual review of web UI.
 - [Stress and states](references/stress-and-states.md): `--stress` runs, break harness with worst-case content, state workbench (`?__state=`), variants on one axis. Use when reviewing components/flows and when building.
 - [Generic tells](references/generic-tells.md): surface types (operate/persuade/read), direction before code, generic-look tells and copy tells (EN/TR). Use for Create, redesigns and "looks generic" complaints.
 - [Visual craft](references/visual-craft.md): design-token consistency (`scripts/token_audit.py`), surface separation (tone / line / shadow), radius, typography and spacing values, motion (frequency gate, easing tokens, durations, gestures), hit areas, performance - web and native.
 - [Interaction and feedback](references/interaction-and-feedback.md): ten Nielsen heuristics, forms, navigation, states, recovery, help.
-- [Cognitive principles](references/cognitive-principles.md): Laws of UX - choice, memory, grouping, progress, attention.
+- [Cognitive principles](references/cognitive-principles.md): Laws of UX - choice, memory, grouping, progress, attention; structure of profile/settings screens and list-row density.
 - [Microcopy](references/microcopy.md): labels, buttons, helper text, errors, empty states, confirmations, localization (incl. Turkish).
 - [Theming](references/theming.md): light/dark consistency - fixed vs adaptive color pairing, overlays, assets, audit procedure, `scripts/theme_audit.py`.
 - [Layout resilience](references/layout-resilience.md): safe areas, keyboard, narrow/wide/iPad/landscape, large text, clipped controls, extreme data; loading states, skeleton parity, layout shift, image fallbacks.

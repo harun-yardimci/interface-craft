@@ -50,11 +50,12 @@ node <skill>/scripts/render_audit.mjs --tile-image screenshot.png --out ui-audit
 
 | Lens | Look for |
 | --- | --- |
-| Edges and alignment | Left edges that almost line up; icons not vertically centred on their text; baselines of side-by-side text not matching; numbers not right-aligned in tables; optical misalignment (play icons, chevrons, circular avatars next to square ones) |
+| Edges and alignment | Left edges that almost line up; icons not vertically centred on their text; baselines of side-by-side text not matching; numbers not right-aligned in tables; optical misalignment (play icons, chevrons, circular avatars next to square ones); a select or dropdown whose arrow hugs the right edge while its text starts far from the left (native `<select>` arrow) |
 | Spacing | One gap that differs among equal siblings; padding inside a component larger than the space around it; a cramped corner or an oddly empty one; a section break that is no bigger than the gap between items |
 | Text | Truncation hiding key information; one orphan word on the last line of a heading; inconsistent capitalisation (Title Case vs Sentence case); typos; untranslated or mixed-language strings; leaked values (`undefined`, `NaN`, `null`, `[object Object]`, `{{name}}`, raw i18n keys like `auth.login.title`, `Lorem ipsum`); wrong locale formats (TR: `1.234,56 ₺`, `13.10.2026`) |
 | Color and contrast | Faint text or icons; two almost-identical grays side by side; a color that is not in the palette; red or green used for something that is not an error or success; links that look like body text |
-| Consistency with siblings | The same component drawn differently: radius, shadow, border, height, icon style (outline vs filled), icon size, stroke width, button sizes in one row |
+| Consistency with siblings and the page | The same component drawn differently, in one row **or anywhere on the screen**: radius, shadow, border, height, font, weight, letter case, fill color, icon style (outline vs filled), icon size and side, stroke width. Compare each button/field/chip with the others of its kind on other tiles |
+| Type rendering | Letters in another font inside a word (ğ ş ı İ ₺ fallback); smeared fake bold or slanted fake italic; labels sitting low or high in buttons and badges; icons not level with their label |
 | Affordance and state | Things that look clickable but are not, and the reverse; disabled vs enabled not distinguishable; no visible selected/active state; focus ring missing or clipped |
 | Surfaces and borders | Double borders where two boxes meet; dividers that stop short or run inconsistently; nested radii that are not concentric; shadows cut off by `overflow: hidden`; a surface that barely separates from the page |
 | Imagery and icons | Blurry, stretched or badly cropped images (cut-off faces, cut-off text in images); icons from different sets; misaligned or off-centre glyphs |

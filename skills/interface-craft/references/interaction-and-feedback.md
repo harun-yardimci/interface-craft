@@ -29,6 +29,7 @@ Build the states that the real data flow needs: initial, empty, loading, partial
 - Focus ring via `:focus-visible`: 2px outline, 2px offset, ≥ 3:1 against the background **in both themes**. Never `outline: none` without a replacement.
 - Hover styles only under `@media (hover: hover)`. Touch devices need the same affordance through the default style.
 - **One primary action per view.** More than ~3 secondary actions go into a menu.
+- **Emphasis follows intent, not danger.** A routine destructive action (log out, remove from list) is a quiet text or tinted button at the end of its section, in the danger color as text. A full-width filled red button is reserved for the confirmation step of a costly, irreversible action. Check that danger-colored text still reaches 4.5:1 on its surface in both themes.
 - **Validate on blur**, not on every keystroke. Re-validate on input once a field has shown an error.
 - **Optimistic UI** only for low-stakes, easily reversible actions (likes, toggles), never for payments or deletions.
 - Prefer the platform: `<dialog>` (focus trap, `Esc`, top layer), the Popover API, `inert` for background content, CSS anchor positioning for popovers where supported, `overscroll-behavior: contain` on scrollable overlays so the page behind does not scroll.
