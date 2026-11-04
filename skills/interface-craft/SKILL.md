@@ -34,7 +34,7 @@ Infer the mode from the request; do not present a menu:
 - If `make-interfaces-feel-better` is installed and the task is heavy on web animation/surface code, load its reference files for full code samples.
 
 ## Reference routing (load only what the task needs)
-- [Visual scan](references/visual-scan.md): web render audit (`scripts/render_audit.mjs`: overflow, clipping, overlap, real contrast, near-miss alignment, uneven gaps, unequal cards, covered/small targets, focus, images, token inventory) + region-by-region tile scan. Default for any visual review of web UI.
+- [Visual scan](references/visual-scan.md): web render audit (`scripts/render_audit.mjs`: overflow, clipping, overlap, real contrast, near-miss alignment, lopsided select/dropdown chevrons, Turkish glyph fallback and faked weights, off-centre labels, native control details, page-wide component consistency, uneven gaps, unequal cards, covered/small targets, focus, images, token inventory) + region-by-region tile scan. Default for any visual review of web UI.
 - [Stress and states](references/stress-and-states.md): `--stress` runs, break harness with worst-case content, state workbench (`?__state=`), variants on one axis. Use when reviewing components/flows and when building.
 - [Generic tells](references/generic-tells.md): surface types (operate/persuade/read), direction before code, generic-look tells and copy tells (EN/TR). Use for Create, redesigns and "looks generic" complaints.
 - [Visual craft](references/visual-craft.md): design-token consistency (`scripts/token_audit.py`), surface separation (tone / line / shadow), radius, typography and spacing values, motion (frequency gate, easing tokens, durations, gestures), hit areas, performance - web and native.

@@ -49,6 +49,18 @@
  *              (and < 44px on touch widths), controls without an accessible name
  *   focus      Tab traversal: no visible focus indicator, focus landing on hidden
  *              elements, focus order jumping back up the page
+ *   dropdowns  select/combobox chevrons measured from pixels: lopsided inset (native arrow
+ *              ignores padding), no arrow at all, text running under the icon, icon off-centre,
+ *              an overlaid icon that swallows the click
+ *   fonts      Turkish letters (ğ ş ı İ ₺) missing from the font and drawn by a fallback, @font-face
+ *              fonts that never rendered, faked bold/italic (weight or style never loaded)
+ *   centring   label cap height off-centre in buttons/chips/badges, icon not level with its label
+ *   natives    date/time picker icon inset, autofill turning dark fields light blue, double
+ *              clear/reveal buttons (search, Edge password eye), type=number for codes and phones,
+ *              native checkboxes/radios/sliders without accent-color
+ *   consistency  page-wide, per kind (button, icon button, field, chip): near-miss heights, font
+ *              sizes, radii, padding, icon sizes; almost-identical fills; mixed typefaces,
+ *              weights, letter case and icon position
  *   media      broken, distorted, upscaled (blurry) images, missing alt
  *   rhythm     heading spacing inverted (more below than above), weak grouping (gap between
  *              groups not clearly larger than inside), line height by role, type-scale sprawl
@@ -202,6 +214,7 @@ function pageAudit(opts) {
     }
     colCache.set(str, v); return v;
   }
+  window.__iaRgba = rgba; // reused by controlsAudit (handles oklch, lab, color())
   const over = (t, b) => { const a = t[3]; return [t[0] * a + b[0] * (1 - a), t[1] * a + b[1] * (1 - a), t[2] * a + b[2] * (1 - a), 1]; };
   const lum = c => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
   const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
@@ -799,6 +812,324 @@ async function focusAudit(page, maxTabs) {
 }
 
 // ---------- annotation ----------
+// ---------- dropdown chevrons: measured from pixels, because the browser paints the native arrow ----------
+// A native <select> arrow ignores padding-right and sits at a browser/OS-specific inset, so a select with
+// custom padding, radius or border usually looks lopsided (text 24px from the left, arrow 8px from the right).
+async function dropdownAudit(page, maxPerRule, maxHeight) {
+  const cands = await page.evaluate(() => {
+    window.scrollTo(0, 0); // rects in page coordinates must match the full-page screenshot
+    const sel = window.__iaSel || (el => el.tagName.toLowerCase());
+    const cv = document.createElement('canvas').getContext('2d');
+    const list = [];
+    const els = document.querySelectorAll('select:not([multiple]), [role=combobox]:not(input), button[aria-haspopup=listbox], button[aria-haspopup=menu], button[aria-haspopup=true], input[type=date], input[type=time], input[type=datetime-local], input[type=month], input[type=week]');
+    for (const el of els) {
+      if (el.matches('select') && el.size > 1) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 40 || r.height < 20 || r.width > 640) continue;
+      if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+      const s = getComputedStyle(el), px = v => parseFloat(v) || 0;
+      const isSelect = el.tagName === 'SELECT', picker = el.tagName === 'INPUT';
+      const appearance = s.appearance || s.webkitAppearance || 'auto';
+      const native = isSelect && !/^(none|base-select)$/.test(appearance);
+      const bl = px(s.borderLeftWidth), br = px(s.borderRightWidth), bt = px(s.borderTopWidth), bb = px(s.borderBottomWidth), pl = px(s.paddingLeft), pr = px(s.paddingRight);
+      let text = isSelect ? (el.selectedOptions[0]?.textContent || '') : picker ? '' : (el.innerText || '');
+      text = text.replace(/\s+/g, ' ').trim();
+      cv.font = `${s.fontStyle} ${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
+      const textW = cv.measureText(text).width;
+      // icon drawn by the DOM: an svg/img inside the trigger, or one layered over a select by its wrapper
+      let icon = null, iconEl = null;
+      const pool = picker ? [] : isSelect ? [...(el.parentElement?.querySelectorAll('svg, img, [class*=chevron], [class*=arrow], [class*=caret]') || [])] : [...el.querySelectorAll('svg, img')];
+      for (const c of pool) {
+        if (c === el || c.contains(el)) continue;
+        const q = c.getBoundingClientRect();
+        if (q.width < 4 || q.width > 40 || q.height < 4) continue;
+        if (q.left < r.left + r.width / 2 || q.right > r.right + 1 || q.top < r.top - 1 || q.bottom > r.bottom + 1) continue;
+        if (!icon || q.right > icon.right) { icon = { left: q.left - r.left, right: q.right - r.left, top: q.top - r.top, bottom: q.bottom - r.top }; iconEl = c; }
+      }
+      let stealsClick = false;
+      if (isSelect && iconEl) {
+        const cx = r.left + (icon.left + icon.right) / 2, cy = r.top + (icon.top + icon.bottom) / 2;
+        const hit = document.elementFromPoint(cx, cy);
+        stealsClick = !!hit && hit !== el && !el.contains(hit) && cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight;
+      }
+      list.push({
+        sel: sel(el), isSelect, picker, native: native || picker, appearance, text: text.slice(0, 60), hasBgIcon: /url\(|gradient/.test(s.backgroundImage),
+        rect: { x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height },
+        bl, br, bt, bb, pl, pr, rad: px(s.borderTopRightRadius), textLeft: bl + pl, textRight: bl + pl + textW, icon, stealsClick,
+      });
+    }
+    return list;
+  });
+  const findings = [], counts = {};
+  const add = (rule, sev, c, msg) => { counts[rule] = (counts[rule] || 0) + 1; if (counts[rule] <= maxPerRule) findings.push({ rule, sev, sel: c.sel, rect: { x: Math.round(c.rect.x), y: Math.round(c.rect.y), w: Math.round(c.rect.w), h: Math.round(c.rect.h) }, text: c.text, msg }); };
+  // painted arrows (native select, picker indicator, background-image chevron): one full-page shot per run,
+  // decoded once, then every candidate is measured from that canvas
+  const needPix = cands.filter(c => !c.icon && (c.isSelect || c.picker) && c.rect.y + c.rect.h <= maxHeight);
+  const painted = new Map();
+  if (needPix.length) {
+    const width = await page.evaluate(() => document.documentElement.clientWidth);
+    const docH = await page.evaluate(() => Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight || 0));
+    const shot = await page.screenshot({ fullPage: true, animations: 'disabled', clip: { x: 0, y: 0, width, height: Math.min(docH, maxHeight) } }).catch(() => null);
+    if (shot) {
+      const boxes = needPix.map(c => {
+        const inner = c.rect.w - c.bl - c.br;
+        // start right of the text, but never so far right that a long (truncated) label hides the arrow
+        const startX = Math.max(0, Math.min(Math.max(c.textRight - c.bl + 3, inner * 0.55), inner - 48));
+        return { sel: c.sel, x: c.rect.x + c.bl, y: c.rect.y + c.bt + 1, w: Math.max(1, inner), h: Math.max(1, c.rect.h - c.bt - c.bb - 2), startX, padL: c.pl, rad: c.rad, boxH: c.rect.h, top: c.bt + 1 };
+      });
+      const res = await page.evaluate(async ({ b64, cssW, boxes }) => {
+        const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
+        const k = img.naturalWidth / cssW;
+        const cvs = document.createElement('canvas'); cvs.width = img.naturalWidth; cvs.height = img.naturalHeight;
+        const g = cvs.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+        return boxes.map(bx => {
+          const X = Math.round(bx.x * k), Y = Math.round(bx.y * k), W = Math.max(1, Math.round(bx.w * k)), H = Math.max(1, Math.round(bx.h * k));
+          if (X < 0 || Y < 0 || X + W > cvs.width || Y + H > cvs.height) return null;
+          const d = g.getImageData(X, Y, W, H).data, at = (x, y) => (y * W + x) * 4;
+          const b = at(Math.min(W - 1, Math.max(1, Math.round((bx.padL / 2) * k))), Math.round(H / 2)); // background: padding left of the text
+          const ink = (x, y) => { const i = at(x, y); return Math.abs(d[i] - d[b]) + Math.abs(d[i + 1] - d[b + 1]) + Math.abs(d[i + 2] - d[b + 2]) > 90; };
+          // skip the rounded border: per row, how far the corner curve reaches in from the right
+          const rr = Math.min(bx.rad, bx.boxH / 2);
+          const edge = y => { const ey = y / k + bx.top, dy = Math.max(0, rr - ey, ey - (bx.boxH - rr)); return dy > 0 ? (rr - Math.sqrt(Math.max(0, rr * rr - dy * dy))) * k + 2 * k : k; };
+          const from = Math.min(W - 1, Math.round(bx.startX * k));
+          let right = -1, left = -1, top = H, bottom = -1;
+          for (let x = W - 1; x >= from; x--) {
+            let any = false;
+            for (let y = 0; y < H; y++) if (x < W - edge(y) && ink(x, y)) { any = true; top = Math.min(top, y); bottom = Math.max(bottom, y); }
+            if (any) { if (right < 0) right = x; left = x; } else if (right >= 0 && right - x > 3 * k) break; // gap after the glyph
+          }
+          return right < 0 ? null : { left: left / k, right: (right + 1) / k, top: top / k, bottom: (bottom + 1) / k };
+        });
+      }, { b64: shot.toString('base64'), cssW: width, boxes }).catch(() => []);
+      needPix.forEach((c, i) => { const ic = res[i]; if (ic) painted.set(c, { left: ic.left + c.bl, right: ic.right + c.bl, top: ic.top + c.bt + 1, bottom: ic.bottom + c.bt + 1 }); });
+    }
+  }
+  for (const c of cands) {
+    const icon = c.icon || painted.get(c) || null;
+    if (!icon) {
+      if (c.isSelect && !c.native && !c.hasBgIcon) add('dropdown-no-icon', 'warn', c, `Select has appearance: ${c.appearance} and no visible arrow - it reads as a text field; add a chevron (background-image or an icon with pointer-events: none)`);
+      continue;
+    }
+    const leftGap = c.textLeft, rightGap = c.rect.w - icon.right;
+    const lopsided = Math.abs(leftGap - rightGap) >= 4 && (rightGap < leftGap * 0.6 || rightGap > leftGap * 1.5);
+    if (lopsided && c.picker) add('picker-icon-inset', 'warn', c, `The browser's picker icon is ${Math.round(rightGap)}px from the right edge but the text starts ${Math.round(leftGap)}px from the left - set padding-right ≈ ${Math.max(8, Math.round(leftGap - 2))}px (Chrome draws the icon inside the padding box) and check Safari/Firefox, which draw it differently`);
+    else if (lopsided) {
+      const fix = c.native
+        ? `the native arrow ignores padding-right; use appearance: none with your own chevron at background-position: right ${Math.max(8, Math.round(leftGap - 2))}px center and padding-right ≈ ${Math.round(leftGap + (icon.right - icon.left) + 8)}px (or appearance: base-select + ::picker-icon where supported)`
+        : `move the icon so its right inset is ~${Math.max(8, Math.round(leftGap - 2))}px (≈ the text inset, minus 2px for optical balance)`;
+      add('dropdown-icon-inset', 'warn', c, `Chevron is ${Math.round(rightGap)}px from the right edge but the text starts ${Math.round(leftGap)}px from the left - the control looks lopsided${c.native ? ' (native arrow)' : ''}: ${fix}`);
+    }
+    if (!c.native && c.textRight > icon.left - 4) add('dropdown-text-under-icon', 'warn', c, `Selected text "${c.text}" reaches ${Math.round(c.textRight)}px but the chevron starts at ${Math.round(icon.left)}px - long options run under the icon; reserve padding-right ≥ ${Math.round(c.rect.w - icon.left + 8)}px`);
+    const off = (icon.top + icon.bottom) / 2 - c.rect.h / 2;
+    if (Math.abs(off) > 1.5) add('dropdown-icon-offcenter', 'info', c, `Chevron is ${Math.abs(off).toFixed(1)}px ${off > 0 ? 'below' : 'above'} the vertical centre`);
+    if (c.stealsClick) add('dropdown-icon-steals-click', 'warn', c, 'The chevron drawn over this select catches the click - tapping the arrow does not open the menu (pointer-events: none on the icon)');
+  }
+  return { findings, counts };
+}
+
+// ---------- fonts, optical centring and native control details (things the DOM does not show) ----------
+async function controlsAudit(page, opts) {
+  return page.evaluate(async ({ theme, maxPer }) => {
+    const sel = window.__iaSel || (el => el.tagName.toLowerCase());
+    const out = [], counts = {};
+    const rectOf = el => { const r = el.getBoundingClientRect(); return { x: Math.round(r.left + scrollX), y: Math.round(r.top + scrollY), w: Math.round(r.width), h: Math.round(r.height) }; };
+    const add = (rule, sev, el, msg) => {
+      counts[rule] = (counts[rule] || 0) + 1;
+      if (counts[rule] > maxPer) return;
+      out.push({ rule, sev, sel: el ? sel(el) : '', rect: el ? rectOf(el) : null, text: el ? (el.innerText || el.value || el.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 60) : '', msg });
+    };
+    const cs = el => getComputedStyle(el), px = v => parseFloat(v) || 0;
+    const rgbaOf = window.__iaRgba; // set by pageAudit, which always runs first
+    const vis = el => { const r = el.getBoundingClientRect(); return r.width >= 1 && r.height >= 1 && (!el.checkVisibility || el.checkVisibility({ opacityProperty: true, visibilityProperty: true })); };
+    // parked off the page until focused (skip links, hidden drawers): not part of what the user sees
+    const onPage = el => { const r = el.getBoundingClientRect(); return r.bottom + scrollY > 0 && r.right + scrollX > 0 && r.left + scrollX < document.documentElement.scrollWidth; };
+    // text a sighted user sees: skips visually-hidden (sr-only) text, which sits in a 1px clipped box
+    // (a range rect ignores clipping, so check the ancestors: clip/clip-path, or overflow: hidden on a ≤ 2px box)
+    const clippedAway = (n, root) => { for (let e = n.parentElement; e && e !== root.parentElement; e = e.parentElement) { const s = cs(e), r = e.getBoundingClientRect(); if ((s.clip && s.clip !== 'auto') || /inset\(50%|circle\(0/.test(s.clipPath) || (s.overflow !== 'visible' && (r.width <= 2 || r.height <= 2))) return true; } return false; };
+    const shownTextNodes = el => { const res = [], tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); for (let n; (n = tw.nextNode());) { if (!n.textContent.trim()) continue; const rg = document.createRange(); rg.selectNodeContents(n); const q = rg.getBoundingClientRect(); if (q.width > 2 && q.height > 4 && !clippedAway(n, el)) res.push(n); } return res; };
+    const shownText = el => el.matches('input, select, textarea') ? (el.value || '') : shownTextNodes(el).map(n => n.textContent).join(' ').replace(/\s+/g, ' ').trim();
+    const ownText = el => [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
+    const firstFam = ff => ff.split(',')[0].trim().replace(/^["']|["']$/g, '');
+    const GENERIC = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-[a-z-]+|-apple-system|BlinkMacSystemFont|emoji|math|inherit|initial)$/i;
+    try { await document.fonts.ready; } catch { /* ignore */ }
+    const ctx = document.createElement('canvas').getContext('2d');
+
+    // 1. glyph coverage: Turkish letters (and ₺) the first font in the stack cannot draw fall back mid-word
+    const textEls = [...document.body.querySelectorAll('*')].filter(el => !/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|SVG)$/i.test(el.tagName) && ownText(el) && vis(el));
+    const byFam = new Map();
+    for (const el of textEls) { const f = firstFam(cs(el).fontFamily); if (!f || GENERIC.test(f)) continue; if (!byFam.has(f)) byFam.set(f, []); byFam.get(f).push(el); }
+    const faces = [...document.fonts], webFams = new Set(faces.map(f => firstFam(f.family)));
+    const TR = 'ğĞşŞıİçÇöÖüÜ₺';
+    for (const [fam, els] of byFam) {
+      const used = [...new Set(els.flatMap(e => [...ownText(e)]).filter(ch => TR.includes(ch)))];
+      try { await document.fonts.load(`16px "${fam}"`, 'Hamburgefonstiv' + used.join('')); } catch { /* ignore */ }
+      const w = (s, fb) => { ctx.font = `40px "${fam}", ${fb}`; return ctx.measureText(s).width; };
+      const present = Math.abs(w('Hamburgefonstiv', 'serif') - w('Hamburgefonstiv', 'monospace')) < 0.5;
+      if (!present) { if (webFams.has(fam)) add('font-not-rendered', 'warn', els[0], `"${fam}" is declared with @font-face but did not render (failed or blocked load?) - ${els.length} elements show the fallback font`); continue; }
+      const missing = used.filter(ch => Math.abs(w(ch, 'serif') - w(ch, 'monospace')) >= 0.5);
+      if (missing.length) add('font-glyph-fallback', 'warn', els.find(e => missing.some(ch => ownText(e).includes(ch))) || els[0], `"${fam}" has no glyph for ${missing.join(' ')} - those letters render in a fallback font in the middle of words. Load a subset that covers Turkish (latin-ext) or pick a font that does`);
+    }
+
+    // 2. synthetic bold / italic: the weight or style used was never loaded, so the browser fakes it
+    for (const [fam, els] of byFam) {
+      const ff = faces.filter(f => firstFam(f.family) === fam);
+      if (!ff.length) continue;
+      const range = f => { const p = String(f.weight).split(/\s+/).map(v => v === 'normal' ? 400 : v === 'bold' ? 700 : parseFloat(v)); return [p[0], p[1] ?? p[0]]; };
+      const combos = new Map();
+      // font-synthesis-weight/-style when supported; else the shorthand, where a missing keyword means "off"
+      const synthOff = (s, Long, word) => { const v = s['fontSynthesis' + Long]; if (v) return v === 'none'; const sh = s.fontSynthesis || ''; return sh === 'none' || (!!sh && !new RegExp(word).test(sh)); };
+      for (const el of els) { const s = cs(el); const k = `${Math.round(px(s.fontWeight))}|${/italic|oblique/.test(s.fontStyle) ? 'italic' : 'normal'}`; if (!combos.has(k)) combos.set(k, { el, n: 0, noWeight: synthOff(s, 'Weight', 'weight'), noStyle: synthOff(s, 'Style', 'style') }); combos.get(k).n++; }
+      for (const [k, c] of combos) {
+        const [wt, st] = k.split('|'); const want = +wt;
+        const styled = ff.filter(f => st === 'italic' ? /italic|oblique/.test(f.style) : !/italic|oblique/.test(f.style));
+        if (st === 'italic' && !styled.length && !c.noStyle) add('synthetic-italic', 'warn', c.el, `"${fam}" has no italic face loaded - ${c.n} element(s) use a slanted fake (load the italic or use font-synthesis: none)`);
+        const pool = styled.length ? styled : ff;
+        const rs = pool.map(range);
+        if (rs.some(([a, b]) => want >= a && want <= b)) continue;
+        const maxW = Math.max(...rs.map(r => r[1]));
+        if (want >= 600 && maxW < 600 && !c.noWeight) add('synthetic-bold', 'warn', c.el, `"${fam}" weight ${want} is not loaded (heaviest face: ${maxW}) - ${c.n} element(s) get a smeared fake bold. Load the ${want} face`);
+        else { const near = rs.flatMap(r => r).reduce((a, b) => Math.abs(b - want) < Math.abs(a - want) ? b : a); if (Math.abs(near - want) >= 200) add('weight-not-loaded', 'info', c.el, `"${fam}" weight ${want} is not loaded; ${c.n} element(s) render at ${near}`); }
+      }
+    }
+
+    // 3. optical centring: the cap height of a one-line label should sit in the middle of its box
+    // a drawn box: a fill, or a border on at least three sides (an underline or a divider line is not a box)
+    const boxy = el => { const s = cs(el); if (rgbaOf(s.backgroundColor)[3] > 0.05) return true; return ['Top', 'Right', 'Bottom', 'Left'].filter(k => px(s['border' + k + 'Width']) > 0 && s['border' + k + 'Style'] !== 'none').length >= 3; };
+    const CENTRE = 'button, [role=button], [role=tab], [role=option], a, summary, [class*=badge], [class*=chip], [class*=tag], [class*=pill]';
+    const metricsCache = new Map();
+    const metrics = s => { const k = `${s.fontStyle} ${s.fontWeight} ${s.fontSize} ${s.fontFamily}`; if (!metricsCache.has(k)) { ctx.font = k; const m = ctx.measureText('H'); metricsCache.set(k, { asc: ctx.measureText('Hg').fontBoundingBoxAscent, cap: m.actualBoundingBoxAscent }); } return metricsCache.get(k); };
+    for (const el of document.body.querySelectorAll(CENTRE)) {
+      if (!vis(el) || !onPage(el) || !boxy(el)) continue;
+      const r = el.getBoundingClientRect();
+      if (r.height < 16 || r.height > 72 || r.width > 480) continue;
+      const label = shownText(el);
+      if (!label || label.length > 40) continue;
+      const tn = shownTextNodes(el)[0]; if (!tn) continue;
+      const rg = document.createRange(); rg.selectNodeContents(tn);
+      const lines = [...rg.getClientRects()].filter(q => q.width > 0);
+      if (!lines.length || new Set(lines.map(q => Math.round(q.top))).size > 1) continue; // wrapped: skip
+      const s = cs(tn.parentElement), m = metrics(s);
+      if (!m.asc || !m.cap) continue;
+      const baseline = lines[0].top + m.asc, capMid = baseline - m.cap / 2;
+      const es = cs(el), boxMid = (r.top + px(es.borderTopWidth) + r.bottom - px(es.borderBottomWidth)) / 2;
+      const off = capMid - boxMid;
+      if (Math.abs(off) >= 1.5) add('label-off-centre', Math.abs(off) >= 2.5 ? 'warn' : 'info', el, `Label "${label.slice(0, 30)}" sits ${Math.abs(off).toFixed(1)}px ${off > 0 ? 'low' : 'high'} - its cap height is not centred in the box (font metrics). Fix: text-box: trim-both cap alphabetic where supported, or shift padding by ${Math.abs(off).toFixed(1)}px`);
+      const ic = [...el.querySelectorAll('svg, img')].find(i => { const q = i.getBoundingClientRect(); return q.width >= 8 && q.width <= 32 && q.height <= 32; });
+      if (ic) { const q = ic.getBoundingClientRect(), d = (q.top + q.bottom) / 2 - capMid; if (Math.abs(d) >= 1.5) add('icon-text-misaligned', Math.abs(d) >= 2.5 ? 'warn' : 'info', el, `Icon centre is ${Math.abs(d).toFixed(1)}px ${d > 0 ? 'below' : 'above'} the label's cap centre in "${label.slice(0, 30)}"`); }
+    }
+
+    // stylesheet text (cssRules drop vendor pseudos like ::-ms-reveal, so read the source)
+    let css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n');
+    for (const l of document.querySelectorAll('link[rel~=stylesheet][href]')) {
+      try { const u = new URL(l.href, location.href); if (u.origin === location.origin || u.protocol === 'file:') css += '\n' + await (await fetch(u)).text(); } catch { /* cross-origin or blocked: unknown */ }
+    }
+    // a button that overlaps the field or sits right next to it (≤ 8px), on the same line
+    const near = (el, re) => {
+      const r = el.getBoundingClientRect(), p = el.closest('label, div, span, fieldset, form') || el.parentElement;
+      return !!p && [...p.querySelectorAll('button, [role=button]')].some(b => {
+        if (b === el) return false;
+        const q = b.getBoundingClientRect();
+        const touching = q.left <= r.right + 8 && q.right >= r.left - 8 && q.top < r.bottom && q.bottom > r.top;
+        return touching && re.test(`${b.getAttribute('aria-label') || ''} ${b.title || ''} ${b.textContent || ''} ${typeof b.className === 'string' ? b.className : ''}`);
+      });
+    };
+    const inputs = [...document.querySelectorAll('input')].filter(vis);
+
+    // 4. autofill: in a dark theme, a field whose color-scheme is still light gets Chrome's light-blue autofill fill
+    if (theme === 'dark') {
+      const lum = v => (0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]) / 255;
+      // what the user sees behind the field: its own fill, or the first opaque ancestor (border-only fields)
+      const effBg = el => { for (let e = el; e; e = e.parentElement) { const v = rgbaOf(cs(e).backgroundColor); if (v[3] > 0.5) return v; } const v = rgbaOf(cs(document.documentElement).backgroundColor); return v[3] > 0.5 ? v : [255, 255, 255, 1]; };
+      const fillable = inputs.filter(i => /^(text|email|tel|password|search|url|)$/.test(i.type) && i.autocomplete !== 'off');
+      const bad = fillable.filter(i => !/dark/.test(cs(i).colorScheme) && lum(effBg(i)) < 0.35);
+      if (bad.length && !/:(-webkit-)?autofill/.test(css)) add('autofill-light-in-dark', 'warn', bad[0], `${bad.length} dark field(s) keep color-scheme: light - when the browser autofills them they turn light blue with black text inside a dark form. Set color-scheme: dark for the dark theme, or style :autofill`);
+    }
+
+    // 5. native decorations that double or fight custom ones
+    for (const i of inputs) {
+      if (i.type === 'password' && near(i, /show|hide|göster|gizle|reveal|eye|göz/i) && !/-ms-reveal/.test(css)) add('double-password-reveal', 'info', i, 'Custom show/hide button next to a password field: Edge adds its own eye icon too. Hide it with input::-ms-reveal { display: none }');
+      if (i.type === 'search' && near(i, /clear|temizle|close|kapat|×|✕|x-?icon/i) && !/search-cancel-button/.test(css)) add('double-clear-button', 'warn', i, 'type="search" with a custom clear button: Chrome/Safari also draw their own × when there is text, so two clear buttons appear. Hide ::-webkit-search-cancel-button or drop the custom one');
+      if (i.type === 'number' && /tel|phone|telefon|card|cc-|cvc|cvv|zip|postal|posta|otp|code|kod|iban|kimlik|tckn/i.test(`${i.name} ${i.id} ${i.autocomplete} ${i.placeholder} ${i.getAttribute('aria-label') || ''}`)) add('number-input-for-code', 'warn', i, 'Codes and numbers you do not do math with (phone, card, postal code, OTP) as type="number": spinners appear, the mouse wheel changes the value and leading zeros are dropped. Use type="text" inputmode="numeric" (plus autocomplete)');
+    }
+
+    // 6. brand color on native checkboxes, radios and sliders
+    const natives = inputs.filter(i => /^(checkbox|radio|range)$/.test(i.type) && !/none/.test(cs(i).appearance));
+    natives.push(...[...document.querySelectorAll('progress')].filter(vis));
+    const sys = natives.filter(i => cs(i).accentColor === 'auto');
+    if (sys.length) add('no-accent-color', 'info', sys[0], `${sys.length} native checkbox/radio/slider/progress control(s) use the browser's default blue - set accent-color: var(--accent) on :root so they match the brand`);
+
+    // 7. page-wide component consistency: each control can be fine alone and still disagree with its kind elsewhere
+    //    Big differences can be deliberate sizes/variants; near misses (40 vs 42px, #2563eb vs #2463ea) are drift.
+    const kinds = {
+      button: el => { if (!el.matches('button, [role=button], input[type=submit], input[type=button], a') || !boxy(el) || el.matches('[role=tab], [class*=chip], [class*=tag], [class*=badge], [class*=pill]')) return false; const t = shownText(el); return t.length > 0 && t.length <= 40; },
+      // a small textless control around a small glyph; image links (thumbnails, logos, avatars) are not icon buttons
+      'icon button': el => { if (!el.matches('button, [role=button], a') || shownText(el)) return false; const r = el.getBoundingClientRect(); if (r.width > 72 || r.height > 72) return false; const g = [...el.querySelectorAll('svg, img')].find(i => { const q = i.getBoundingClientRect(); return q.width >= 8 && q.width <= 40 && q.height <= 40; }); return !!g; },
+      field: el => el.matches('input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=hidden]):not([type=file]), select, textarea'),
+      chip: el => el.matches('[class*=chip], [class*=tag], [class*=badge], [class*=pill], [role=tab]') && shownText(el).length <= 30,
+    };
+    const groups = Object.fromEntries(Object.keys(kinds).map(k => [k, []]));
+    for (const el of document.body.querySelectorAll('button, [role=button], [role=tab], input, select, textarea, a, [class*=chip], [class*=tag], [class*=badge], [class*=pill]')) {
+      if (!vis(el) || !onPage(el)) continue;
+      const r = el.getBoundingClientRect(); if (r.width < 12 || r.height < 12 || r.height > 120) continue;
+      for (const [k, test] of Object.entries(kinds)) if (test(el)) { groups[k].push(el); break; }
+    }
+    const filledBg = el => { const v = rgbaOf(cs(el).backgroundColor); return v[3] > 0.9 ? v : null; };
+    const colorDist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    const hexOf = v => '#' + v.slice(0, 3).map(n => Math.round(n).toString(16).padStart(2, '0')).join('');
+    for (const [kind, els] of Object.entries(groups)) {
+      if (els.length < 3) continue;
+      const iconOf = el => [...el.querySelectorAll('svg, img')].find(i => { const q = i.getBoundingClientRect(); return q.width >= 8 && q.width <= 40; });
+      const props = {
+        height: el => Math.round(el.getBoundingClientRect().height),
+        'font size': el => px(cs(el).fontSize),
+        radius: el => px(cs(el).borderTopLeftRadius),
+        'horizontal padding': el => px(cs(el).paddingLeft),
+        'icon size': el => { const i = iconOf(el); return i ? Math.round(i.getBoundingClientRect().width) : null; },
+      };
+      if (kind === 'icon button') props.width = el => Math.round(el.getBoundingClientRect().width);
+      for (const [name, get] of Object.entries(props)) {
+        const vals = new Map();
+        for (const el of els) { const v = get(el); if (v == null || !isFinite(v)) continue; if (!vals.has(v)) vals.set(v, []); vals.get(v).push(el); }
+        if (vals.size < 2) continue;
+        const pill = name === 'radius' ? [...vals.keys()].filter(v => v >= 99) : [];
+        const sorted = [...vals.entries()].filter(([v]) => !pill.includes(v)).sort((a, b) => b[1].length - a[1].length);
+        if (!sorted.length) continue;
+        const [major, majEls] = sorted[0];
+        for (const [v, vEls] of sorted.slice(1)) {
+          const d = Math.abs(v - major), tol = name === 'font size' ? 1 : name === 'radius' ? 2 : 3; // a 4px / 2px scale step is a size, not drift
+          if (d > 0 && d <= tol && d / Math.max(major, 1) <= 0.25 && vEls.length <= majEls.length) add('inconsistent-size', 'warn', vEls[0], `${vEls.length} ${kind}(s) use ${name} ${v}px while ${majEls.length} others on this page use ${major}px - near misses read as mistakes; use one value (or a clearly different size)`);
+        }
+      }
+      // categorical: typeface, weight, case, icon side
+      const cat = (name, get, limit) => {
+        const vals = new Map(); for (const el of els) { const v = get(el); if (v == null) continue; if (!vals.has(v)) vals.set(v, []); vals.get(v).push(el); }
+        if (vals.size > limit) { const s = [...vals.entries()].sort((a, b) => b[1].length - a[1].length); add('inconsistent-style', 'warn', s.at(-1)[1][0], `${kind}s on this page mix ${vals.size} ${name}s: ${s.map(([v, e]) => `${v} ×${e.length}`).join(', ')}`); }
+      };
+      cat('typeface', el => firstFam(cs(el).fontFamily), 1);
+      // weights: two values ≤ 50 apart (550 / 600 / 650) are drift; regular vs bold is a choice
+      if (kind !== 'field') {
+        const ws = new Map(); for (const el of els) { const w = Math.round(px(cs(el).fontWeight)); if (!ws.has(w)) ws.set(w, []); ws.get(w).push(el); }
+        const wl = [...ws.keys()].sort((a, b) => a - b), close = wl.filter((w, i) => (i && w - wl[i - 1] <= 50) || (i < wl.length - 1 && wl[i + 1] - w <= 50));
+        if (close.length >= 2) { const minor = close.reduce((a, b) => ws.get(b).length < ws.get(a).length ? b : a); add('inconsistent-style', 'warn', ws.get(minor)[0], `${kind}s on this page use nearly identical weights ${close.join(' / ')} (${close.map(w => '×' + ws.get(w).length).join(', ')}) - pick one`); }
+      }
+      if (kind === 'button' || kind === 'chip') cat('letter case', el => { const t = shownText(el); return cs(el).textTransform === 'uppercase' || (t.length > 2 && t === t.toLocaleUpperCase('tr-TR') && t !== t.toLocaleLowerCase('tr-TR')) ? 'UPPERCASE' : 'normal case'; }, 1);
+      if (kind === 'button') cat('icon position', el => { const i = iconOf(el); if (!i) return null; const q = i.getBoundingClientRect(), r = el.getBoundingClientRect(); return (q.left + q.right) / 2 < (r.left + r.right) / 2 ? 'icon before text' : 'icon after text'; }, 1);
+      // colors: fills that are almost, but not exactly, the same
+      const fills = new Map();
+      for (const el of els) { const v = filledBg(el); if (!v) continue; const k = hexOf(v); if (!fills.has(k)) fills.set(k, { v, els: [] }); fills.get(k).els.push(el); }
+      const fl = [...fills.entries()].sort((a, b) => b[1].els.length - a[1].els.length);
+      for (let i = 0; i < fl.length; i++) for (let j = i + 1; j < fl.length; j++) {
+        const d = colorDist(fl[i][1].v, fl[j][1].v);
+        if (d > 0 && d < 28) add('inconsistent-color', 'warn', fl[j][1].els[0], `${kind} fill ${fl[j][0]} (×${fl[j][1].els.length}) is almost but not quite ${fl[i][0]} (×${fl[i][1].els.length}) - one token drifted; use the same color`);
+      }
+      const radiiN = new Set(els.map(el => px(cs(el).borderTopLeftRadius)).filter(v => v < 99)).size;
+      if (radiiN > 3) add('inconsistent-style', 'info', els[0], `${kind}s use ${radiiN} different corner radii on one page - usually 1-2 is enough`);
+    }
+
+    return { findings: out, counts };
+  }, { theme: opts.theme, maxPer: opts.maxPerRule });
+}
+
 async function annotate(page, items) {
   await page.evaluate((items) => {
     const root = document.createElement('div');
@@ -1059,7 +1390,13 @@ async function main() {
       const res = await page.evaluate(pageAudit, { maxPerRule: o.maxPerRule, mobile, touch: mobile, vpWidth: vp.width });
       let focus = null;
       if (o.focus && !job.stress) focus = await focusAudit(page, 60).catch(e => { notes.push('focus traversal failed: ' + e.message); return null; });
-      const findings = [...res.findings, ...(focus ? focus.findings : []), ...stressFindings];
+      const dd = await dropdownAudit(page, o.maxPerRule, o.maxHeight).catch(e => { notes.push('dropdown check failed: ' + e.message.split('\n')[0]); return { findings: [], counts: {} }; });
+      const ca = await controlsAudit(page, { theme, maxPerRule: o.maxPerRule }).catch(e => { notes.push('font/control check failed: ' + e.message.split('\n')[0]); return { findings: [], counts: {} }; });
+      for (const x of [dd, ca]) {
+        for (const [rule, n] of Object.entries(x.counts)) res.perRule[rule] = (res.perRule[rule] || 0) + n;
+        for (const f of x.findings) res.allKeys.push(f.rule + '|' + f.sel);
+      }
+      const findings = [...res.findings, ...dd.findings, ...ca.findings, ...(focus ? focus.findings : []), ...stressFindings];
       if (res.cls > 0.1) findings.push({ rule: 'layout-shift', sev: res.cls > 0.25 ? 'error' : 'warn', sel: '', rect: null, text: '', msg: `Cumulative layout shift ${res.cls.toFixed(3)} during load (good < 0.1). Shifted: ${[...new Set(res.shifts.flatMap(s => s.sources))].slice(0, 6).join(', ') || 'unknown'}` });
       if (consoleErrors.length) findings.push({ rule: 'console-error', sev: 'warn', sel: '', rect: null, text: '', msg: `${consoleErrors.length} console error(s): ${consoleErrors.slice(0, 3).join(' | ')}` });
       if (failed.length) findings.push({ rule: 'failed-request', sev: 'warn', sel: '', rect: null, text: '', msg: `${failed.length} failed request(s): ${failed.slice(0, 4).join(' | ')}` });

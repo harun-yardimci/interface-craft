@@ -13,6 +13,29 @@ Tailwind: `rounded-2xl p-2` → child `rounded-lg` (16 − 8). If padding > 24px
 
 **Optical alignment** - icon+text buttons: icon-side padding = text-side − 2px (`pl-4 pr-3.5`). Play triangles and other asymmetric icons: shift ~1–2px toward the point, or fix the SVG. Inspect the result.
 
+**Select and dropdown chevrons** - the native `<select>` arrow is painted by the browser at its own inset (Chrome on macOS: ~3–14px from the edge) and **ignores `padding-right`**. Once a select gets custom padding, radius or border, the text sits 24–30px from the left and the arrow hugs the right edge, so the control looks lopsided. `render_audit.mjs` measures this from pixels (`dropdown-icon-inset`). Fix it by drawing the chevron yourself:
+```css
+select {
+  appearance: none;
+  padding: 10px 44px 10px 16px;            /* right = icon inset + icon + 8px gap */
+  background: var(--field-bg) var(--chevron) no-repeat right 14px center / 16px; /* inset ≈ text inset − 2px */
+}
+```
+Customizable select (`appearance: base-select`, with a stylable `::picker-icon`) is an alternative in newer Chromium; check current support and keep the `appearance: none` version as the fallback.
+- The chevron's right inset ≈ the text's left inset (−2px optical); vertically centred on the text, not the box with its border.
+- Reserve `padding-right` so the longest option never runs under the icon.
+- An icon element layered over a select needs `pointer-events: none`, or tapping the arrow does nothing.
+- Use one chevron icon (from the product's icon set, `currentColor`) for every select, combobox and menu trigger, so it also adapts in dark mode (a `data:` SVG background does not follow `currentColor`; define one per theme).
+- The audit measures Chrome only; Safari and Firefox draw the native arrow at other insets, which is one more reason to draw your own.
+
+**Things the DOM does not show** (the render audit measures them; confirm on the tile):
+- **Glyph fallback.** A web font without Turkish letters draws ğ, ş, ı, İ (and ₺) in a fallback font mid-word: the letters look a different weight or height. Load the latin-ext subset (`&subset=latin-ext` / `unicode-range` covering U+011E-011F, U+0130-0131, U+015E-015F, U+20BA) or choose a font that covers them. Rule: `font-glyph-fallback`.
+- **Faked weights.** Using weight 600/700 or italic when only 400 is loaded makes the browser smear a fake. Load the faces you use, or set `font-synthesis: none` to see the gap. Rules: `synthetic-bold`, `synthetic-italic`, `weight-not-loaded`.
+- **Optical centring.** Many fonts sit low or high in a box even with equal padding. Centre the **cap height**, not the line box: `text-box: trim-both cap alphabetic` where supported, otherwise adjust padding by the measured offset. Icons align to the cap centre of their label. Rules: `label-off-centre`, `icon-text-misaligned`.
+- **Native control details.** Autofill paints fields light blue unless the dark theme sets `color-scheme: dark` (or styles `:autofill`); `type="search"` draws its own clear ×; Edge adds a password eye (`::-ms-reveal`); `type="number"` adds spinners and drops leading zeros (phones, cards, codes → `type="text" inputmode="numeric"`); checkboxes, radios and sliders need `accent-color` to match the brand.
+
+**Page-wide consistency.** A control can be right on its own and still disagree with its kind on the same screen. Compare every button, icon button, field and chip on the page, not only siblings: height, font size and weight, typeface, radius, padding, icon size and icon side, letter case, fill color. Clearly different sizes or variants (S/M/L on a 4px step such as 32/36/40, 14/16px text, primary/secondary) are deliberate; **near misses** (≤ 3px in size or padding, 1px in font size, 2px in radius: 40 vs 42px, 8 vs 10px radius, `#2563eb` vs `#2463ea`, one button in Arial because it does not inherit the font) are drift. Fix them by mapping each to the same token or component, not by nudging values. Rules: `inconsistent-size`, `inconsistent-style`, `inconsistent-color`.
+
 **Separating surfaces: tone, line, shadow, each with its own job.**
 | Need | Use | Avoid |
 | --- | --- | --- |
