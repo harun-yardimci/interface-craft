@@ -36,6 +36,7 @@ Then check it against two tests:
 | Purple/indigo or cyan-violet gradients; cream + terracotta + serif "warm editorial"; near-black + neon glow | A palette derived from the brand and the product's world; tinted neutrals + one accent |
 | Glassmorphism panels and floating pill navigation bars by default | Solid surfaces separated by tone; a normal header |
 | Card inside a card; 1px border **plus** a wide soft shadow; colored side stripe on callouts | One container level; tone step or line (see the surfaces table in visual craft) |
+| Rainbow UI: every menu icon, tag and filter chip in its own color; priority chips, category chips and status chips competing on one row | Color only where it carries meaning (selection, status, the one accent). Icons in one tone, optionally on a lightly tinted container; tags as neutral text or a single muted style |
 | Emoji as icons; decorative blobs, grid/dot backgrounds, sketchy SVG doodles | The product's icon set; real imagery or nothing |
 | Monospace text as a "technical" costume; 01 / 02 / 03 section numbers with no real sequence | Monospace only for code and data; numbers only for real steps |
 | Fake dashboards made of gray bars; hero metrics nobody can verify ("10x faster", "99.99%") | Real screenshots or honest illustrations; real, sourced numbers |

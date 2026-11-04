@@ -22,6 +22,24 @@ When relationships are unclear, use proximity first (spacing), then common regio
 
 Reduce cognitive load: don't make users remember values from a previous screen, avoid redundant interpretation, order information around the task. Progressive disclosure defers genuinely secondary options - never prices, consequences or required fields.
 
+## Lists and settings screens
+Profile, settings and task lists drift into a "junk drawer": every destination is one equal row, every row carries every field. Hierarchy should follow how often and why people come here.
+
+**Screen structure (profile, account, settings)**
+- **Rank by frequency.** The 2–3 destinations people open most (orders, wallet, saved) can become larger tiles that show their state ("2 aktif", "₺42,50", "18 ürün"). Everything else goes into grouped, inset lists. Base the ranking on usage data or the product's core task; never invent an 80/20 split.
+- **Group, then merge the rare.** Help, About, Privacy Policy and Terms are rarely opened. One "Yardım ve yasal" row is easier to scan than four. Legal pages stay reachable in one tap from that row.
+- **Promotions don't own the top of a utility screen.** A "Profilini tamamla, 50 puan kazan!!!" banner above the account content pushes the task down. If loyalty status matters, show it as real data (points, tier, distance to next tier), not as a nag.
+
+**Rows show their value.** A row that only names a destination forces a tap to learn the current state. Show it in the trailing slot: "Adresler · 2 kayıtlı", "Ödeme yöntemleri · Visa ·· 4242", "Dil · Türkçe". A single binary setting is an inline toggle on the row, not a drill-in screen with one switch. Trailing values truncate before the label does, and the row's accessible name includes the value.
+
+**List rows: one title, one meta line.**
+- Descriptions, tags, avatars and full timestamps on every row turn a list into a wall. Keep the title plus one short meta line ("17:00 · İş"); move the rest to the detail view (progressive disclosure, never hiding cost or consequence).
+- **Don't repeat what the context already says.** Under a "Bugün" header, each row needs the time, not "Due: 10/24/2026 5:00 PM". Use relative and contextual dates (Bugün, Yarın, Cuma) and full dates only where ambiguity starts.
+- **Filter by the axis people navigate by.** Task lists are usually opened by time (Tümü / Bugün / Yaklaşan), not by priority. Show a secondary attribute (priority, label) as a small indicator on the row; an indicator that differs only by color also needs a text or accessible label (e.g. `accessibilityLabel("Yüksek öncelik")`), or a different shape.
+- **Add actions where the list ends.** A FAB that covers the last row's content or controls is a layering bug; an inline "Görev ekle" row at the end of a short list, or bottom padding equal to the FAB height plus margin, fixes it.
+
+Check: count the distinct colors, type sizes and fields per row before and after. If a row still needs two lines of meta, the list is probably a table or a set of cards.
+
 ## Secondary catalog (apply only with a concrete fit)
 | Concept | Use when / limit |
 | --- | --- |
