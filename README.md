@@ -382,11 +382,26 @@ To install it for a single project, copy it to `.claude/skills/` in that repo in
 ### OpenAI Codex
 
 ```bash
-git clone https://github.com/harun-yardimci/interface-craft.git
-cp -R interface-craft/skills/interface-craft ~/.agents/skills/
+codex plugin marketplace add harun-yardimci/interface-craft
 ```
 
-For a single project, use `.agents/skills/`. The optional `agents/openai.yaml` sets the display name and default prompt in the Codex UI.
+Codex CLI v0.122+; the same `skills/` folder is served through `codex/` and `.agents/plugins/marketplace.json`. Manual alternative: copy `skills/interface-craft` to `~/.agents/skills/` (or `.agents/skills/` in one project). The optional `agents/openai.yaml` sets the display name and default prompt in the Codex UI. Details in [docs/codex-setup.md](docs/codex-setup.md).
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/harun-yardimci/interface-craft
+```
+
+`gemini-extension.json` at the root makes the repository an extension; running Gemini inside a clone loads the skill through `.gemini/skills` too. Details in [docs/gemini-setup.md](docs/gemini-setup.md).
+
+### Cursor, Copilot, OpenCode and others (skills.sh)
+
+```bash
+npx skills add harun-yardimci/interface-craft
+```
+
+The [skills](https://skills.sh) CLI copies `skills/interface-craft` into whichever agents it finds. Any agent that reads `SKILL.md` can also take a plain copy of that folder.
 
 ### Claude apps
 
