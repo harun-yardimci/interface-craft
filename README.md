@@ -365,9 +365,18 @@ Where they disagree, the skill picks one rule and says why. For example, Taste S
 
 ### Claude Code: plugin (recommended)
 
-```bash
+Inside a Claude Code session:
+
+```text
 /plugin marketplace add harun-yardimci/interface-craft
 /plugin install interface-craft@interface-craft
+```
+
+Or from the terminal:
+
+```bash
+claude plugin marketplace add harun-yardimci/interface-craft
+claude plugin install interface-craft@interface-craft
 ```
 
 ### Claude Code: manual
@@ -382,11 +391,26 @@ To install it for a single project, copy it to `.claude/skills/` in that repo in
 ### OpenAI Codex
 
 ```bash
-git clone https://github.com/harun-yardimci/interface-craft.git
-cp -R interface-craft/skills/interface-craft ~/.agents/skills/
+codex plugin marketplace add harun-yardimci/interface-craft
 ```
 
-For a single project, use `.agents/skills/`. The optional `agents/openai.yaml` sets the display name and default prompt in the Codex UI.
+Codex CLI v0.122+. The repository root is the plugin (`.codex-plugin/plugin.json` + `.agents/plugins/marketplace.json`, installed by default on add); it reads the same `skills/` folder Claude Code does. If Codex lists it without activating it, run `codex plugin add interface-craft@interface-craft`. Manual alternative: copy `skills/interface-craft` to `~/.agents/skills/` (or `.agents/skills/` in one project). The optional `agents/openai.yaml` sets the display name and default prompt in the Codex UI. Details in [docs/codex-setup.md](docs/codex-setup.md).
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/harun-yardimci/interface-craft
+```
+
+`gemini-extension.json` at the root makes the repository an extension; running Gemini inside a clone loads the skill through `.gemini/skills` too. Details in [docs/gemini-setup.md](docs/gemini-setup.md).
+
+### Cursor, Copilot, OpenCode and others (skills.sh)
+
+```bash
+npx skills add harun-yardimci/interface-craft
+```
+
+The [skills](https://skills.sh) CLI copies `skills/interface-craft` into whichever agents it finds. Any agent that reads `SKILL.md` can also take a plain copy of that folder.
 
 ### Claude apps
 
@@ -603,6 +627,9 @@ skills/interface-craft/scripts/
 ├── token_audit.py                   # static scan for font/spacing/radius drift
 └── hit_area_audit.py                # static scan for hit areas that differ from what's drawn
 .claude-plugin/                      # Claude Code plugin + marketplace manifests
+.codex-plugin/, .agents/plugins/     # Codex plugin manifest + marketplace entry (plugin root = repo root)
+gemini-extension.json, .gemini/      # Gemini CLI extension and workspace skills (.gemini/skills -> ../skills)
+docs/                                # Codex and Gemini setup notes
 examples/                            # HTML sources of the README mockups
 assets/                              # rendered images
 ```

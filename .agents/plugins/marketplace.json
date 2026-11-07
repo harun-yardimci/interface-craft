@@ -1,0 +1,18 @@
+{
+  "name": "interface-craft",
+  "plugins": [
+    {
+      "name": "interface-craft",
+      "description": "Review, improve, or build interfaces across task flow, microcopy, system states, accessibility and visual polish.",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
