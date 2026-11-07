@@ -21,6 +21,8 @@ It combines five bodies of practice in one skill, with rules for which one wins 
 
 The full list of principles and sources is in [Foundations: what we follow](#foundations-what-we-follow).
 
+**Companion skill:** [performance-craft](https://github.com/harun-yardimci/performance-craft) covers the other half of the experience: load time, Core Web Vitals, jank, app launch and slow APIs, measured before and after in real Chrome and on devices. The two are built the same way and hand off to each other: interface-craft defers to performance-craft when a screen is slow rather than unclear, and performance-craft defers here for how a loading state should look. Install both for a full review.
+
 ---
 
 ## Contents
