@@ -404,7 +404,7 @@ Codex CLI v0.122+. The repository root is the plugin (`.codex-plugin/plugin.json
 gemini extensions install https://github.com/harun-yardimci/interface-craft
 ```
 
-`gemini-extension.json` at the root makes the repository an extension; running Gemini inside a clone loads the skill through `.gemini/skills` too. Details in [docs/gemini-setup.md](docs/gemini-setup.md).
+`gemini-extension.json` at the root makes the repository an extension. The GitHub URL installs the latest release (tag), a clone path tracks `main`; running Gemini inside a clone loads the skill through `.gemini/skills` too. Details in [docs/gemini-setup.md](docs/gemini-setup.md).
 
 ### Cursor, Copilot, OpenCode and others (skills.sh)
 
