@@ -12,7 +12,7 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Interface Craft",
-    "shortDescription": "Improve usability, microcopy, states, accessibility and visual craft.",
+    "shortDescription": "Improve usability, microcopy, and visual craft",
     "category": "Productivity"
   }
 }

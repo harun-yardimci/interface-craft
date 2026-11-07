@@ -22,10 +22,10 @@ cp -R interface-craft/skills/interface-craft ~/.agents/skills/
 The theme, token and hit-area audits need only Python 3. The render audit needs its dependency once:
 
 ```bash
-cd ~/.codex/plugins/interface-craft/skills/interface-craft/scripts && npm install
+cd ~/.codex/plugins/cache/interface-craft/interface-craft/*/skills/interface-craft/scripts && npm install
 ```
 
-(adjust the path for a manual install). It drives the Chrome or Edge already on the machine; nothing is downloaded.
+Codex caches plugins under `~/.codex/plugins/cache/<marketplace>/<plugin>/<version>/`; adjust the path for a manual install. It drives the Chrome or Edge already on the machine; nothing is downloaded.
 
 ## Usage
 
@@ -33,8 +33,7 @@ Invoke it with `$interface-craft` or `@interface-craft`, or describe the task ("
 
 ## How it works
 
-- `codex/.codex-plugin/plugin.json`: the Codex plugin manifest; `skills` points at `./skills/`.
-- `codex/skills`: a git-tracked symlink to `../skills`, so the plugin directory is self-contained without duplicating files. Codex requires plugins to live in a subdirectory of the marketplace root.
-- `.agents/plugins/marketplace.json`: the marketplace entry pointing at `./codex`.
+- `.codex-plugin/plugin.json` at the repository root: the Codex plugin manifest; `skills` points at `./skills/`, the same folder Claude Code reads.
+- `.agents/plugins/marketplace.json`: the marketplace entry. Its `source.path` is `./`, so the repository root is the plugin root, and `installation` is `INSTALLED_BY_DEFAULT`, so `codex plugin marketplace add` installs the plugin in one step. If it is listed but not active, run `codex plugin add interface-craft@interface-craft` or use `/plugins` in Codex.
 
-On Windows, or if symlinks are not available, replace the symlink with a copy after cloning (`rm codex/skills && cp -R skills codex/skills`). Keep that change local.
+No symlinks are involved, so the layout works the same on Windows.

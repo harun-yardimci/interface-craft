@@ -385,7 +385,7 @@ To install it for a single project, copy it to `.claude/skills/` in that repo in
 codex plugin marketplace add harun-yardimci/interface-craft
 ```
 
-Codex CLI v0.122+; the same `skills/` folder is served through `codex/` and `.agents/plugins/marketplace.json`. Manual alternative: copy `skills/interface-craft` to `~/.agents/skills/` (or `.agents/skills/` in one project). The optional `agents/openai.yaml` sets the display name and default prompt in the Codex UI. Details in [docs/codex-setup.md](docs/codex-setup.md).
+Codex CLI v0.122+. The repository root is the plugin (`.codex-plugin/plugin.json` + `.agents/plugins/marketplace.json`, installed by default on add); it reads the same `skills/` folder Claude Code does. If Codex lists it without activating it, run `codex plugin add interface-craft@interface-craft`. Manual alternative: copy `skills/interface-craft` to `~/.agents/skills/` (or `.agents/skills/` in one project). The optional `agents/openai.yaml` sets the display name and default prompt in the Codex UI. Details in [docs/codex-setup.md](docs/codex-setup.md).
 
 ### Gemini CLI
 
@@ -618,6 +618,9 @@ skills/interface-craft/scripts/
 ├── token_audit.py                   # static scan for font/spacing/radius drift
 └── hit_area_audit.py                # static scan for hit areas that differ from what's drawn
 .claude-plugin/                      # Claude Code plugin + marketplace manifests
+.codex-plugin/, .agents/plugins/     # Codex plugin manifest + marketplace entry (plugin root = repo root)
+gemini-extension.json, .gemini/      # Gemini CLI extension and workspace skills (.gemini/skills -> ../skills)
+docs/                                # Codex and Gemini setup notes
 examples/                            # HTML sources of the README mockups
 assets/                              # rendered images
 ```
