@@ -365,9 +365,18 @@ Where they disagree, the skill picks one rule and says why. For example, Taste S
 
 ### Claude Code: plugin (recommended)
 
-```bash
+Inside a Claude Code session:
+
+```text
 /plugin marketplace add harun-yardimci/interface-craft
 /plugin install interface-craft@interface-craft
+```
+
+Or from the terminal:
+
+```bash
+claude plugin marketplace add harun-yardimci/interface-craft
+claude plugin install interface-craft@interface-craft
 ```
 
 ### Claude Code: manual
