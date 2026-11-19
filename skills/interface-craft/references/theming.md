@@ -25,6 +25,9 @@ By default, a foreground comes from the **same theme source** as the background 
 | Local `colorScheme` overrides (`.preferredColorScheme`, `.environment(\.colorScheme, .light)`, a `.light` class on a subtree) | Part of the screen ignores the system setting | Remove the override, or apply it to the whole scene deliberately |
 | Web: no `color-scheme` declaration | Native inputs, selects, scrollbars and autofill stay light in dark mode | `:root { color-scheme: light dark; }` or `<meta name="color-scheme" content="light dark">` |
 | Web: `dark:` variants only on some elements; toggle mode vs media query mismatch | Mixed panels after the user toggles the theme | One strategy (class or media); tokens rather than per-element `dark:` classes |
+| Web: the same tokens redefined in several `prefers-color-scheme: dark` blocks | A token updated in one block and forgotten in another | `light-dark(<light>, <dark>)` per token (needs `color-scheme` set); a theme toggle then only flips `color-scheme` on `:root` |
+| Web: native controls and scrollbars in the browser's default blue/gray | Checkboxes, radios, range and progress clash with the brand, or stay light | `accent-color` for native controls, `scrollbar-color` for scrollbars, both per theme |
+| Web: autofilled inputs | Browser paints its own pale background; light text on it in dark mode | Check `:autofill` in both themes; keep the text color readable on it |
 | Status bar / system UI style fixed | Unreadable status bar in one theme | Let the system choose, or set it per theme |
 | Brand color reused as text on dark | Blue links or accents fail contrast on dark surfaces | Use a lighter tone of the brand color for dark (`primary` role per theme) |
 

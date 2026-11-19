@@ -15,7 +15,12 @@ A design and verification checklist, not a compliance certificate. Baseline is [
 
 ## Checks
 - **Semantics**: native controls (`button`, `a`, `input`, `select`) with correct name, role, state. No clickable `div`s when a button or link fits.
-- **Keyboard**: every action reachable; logical focus order; visible focus. Modals: focus moves in, stays inside, `Esc` closes, focus returns to the trigger.
+- **Keyboard**: every action reachable; logical focus order; visible focus. Modals: focus moves in, stays inside, `Esc` closes, focus returns to the trigger. No positive `tabindex` (it overrides the DOM order); fix the source order instead. Move focus into newly opened content.
+- **Zoom**: never `user-scalable=no` or `maximum-scale=1` in the viewport meta; they block pinch zoom.
+- **Scrollable regions** (code blocks, wide tables) that hold no focusable child need `tabindex="0"` and a labelled `role="region"`, or keyboard users cannot scroll them.
+- **Headings and landmarks**: one `<h1>`, no skipped levels, `<main>`, `<nav>`, `<search>` for the search form.
+- **Media**: captions via `<track>`; no autoplaying sound; a background video is `muted`, has no controls and is hidden from assistive tech.
+- `content-visibility: auto` keeps off-screen content in the accessibility tree; hide it with `aria-hidden` only when it really should not be read.
 - **Forms**: every field has a programmatic label; helper text and errors linked via `aria-describedby`; required state not shown by color alone; errors announced and focus moved to the first invalid field on submit.
 - **Color**: never the sole carrier of meaning (errors, status, selection). Shadow-only boundaries vanish in forced-colors mode - keep a transparent border/outline.
 - **Dynamic status**: announce important async results with a polite live region (`role="status"`) without stealing focus; do not announce every keystroke-level update.
