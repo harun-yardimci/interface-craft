@@ -39,6 +39,7 @@ The full list of principles and sources is in [Foundations: what we follow](#fou
 - [Theme audit](#theme-audit-catch-lightdark-bugs-before-users-do)
 - [Token audit](#token-audit-find-design-system-drift)
 - [Hit area audit](#hit-area-audit-taps-that-land-where-users-aim)
+- [Legacy UI audit](#legacy-ui-audit-let-the-browser-do-it)
 - [Repository layout](#repository-layout)
 - [Credits and license](#credits-and-license)
 
@@ -170,7 +171,7 @@ Dimensions with nothing to report are left out; the table is never padded.
 <tr><td><b>Task flow</b></td><td>Can the user start, continue, finish and recover? Is anything essential (price, consequence, a required field) hidden behind progressive disclosure?</td></tr>
 <tr><td><b>Information & decision load</b></td><td>Too many equally loud options, missing defaults, information the user must remember from a previous screen; “junk drawer” profile and settings screens (no ranking by frequency, rows that hide their current value, one-switch drill-ins); list rows overloaded with descriptions, tags and repeated dates; color on every icon and tag</td></tr>
 <tr><td><b>Microcopy</b></td><td>Vague buttons (“OK”, “Submit”), errors without a fix, placeholder-as-label, inconsistent terms, concatenated strings that break in translation, cheerleading status lines and false precision (“20.00%”), ALL CAPS buttons</td></tr>
-<tr><td><b>Interaction</b></td><td>Hit areas that don't match what's drawn (clipped fill-scaled media, near-invisible tap catchers, full-cover overlays), targets under 44pt / 48dp, Hover-only actions, missing pressed/selected/disabled states, nested click targets, no undo, duplicate submits, a routine “Log out” drawn as the loudest button on the screen</td></tr>
+<tr><td><b>Interaction</b></td><td>Hit areas that don't match what's drawn (clipped fill-scaled media, near-invisible tap catchers, full-cover overlays), targets under 44pt / 48dp, Hover-only actions, missing pressed/selected/disabled states, nested click targets, no undo, duplicate submits, a routine “Log out” drawn as the loudest button on the screen; hand-built dialogs, menus and accordions the platform now provides (<code>dialog</code>, <code>popover</code>, <code>details</code>), errors shown before the user typed, <code>autocomplete="off"</code> on autofill fields, Enter handlers that break IME input</td></tr>
 <tr><td><b>System states</b></td><td>Empty vs no-results vs failed vs loading vs partial; success claimed before it is confirmed; lost input after an error</td></tr>
 <tr><td><b>Accessibility</b></td><td>Contrast (4.5:1 text, 3:1 non-text), target size, focus order and visibility, modal focus trap and return, labels and errors linked to fields, reduced motion, screen-reader names</td></tr>
 <tr><td><b>Light / dark consistency</b><br><sub>cross-cutting</sub></td><td>Fixed backgrounds with adaptive text (or the reverse), sheets and menus that stay light in dark mode, color assets without a dark variant, local color-scheme overrides, missing <code>color-scheme</code> on the web, and contrast checked separately in each theme</td></tr>
@@ -294,7 +295,7 @@ The visual-craft layer is inspired by and adapted from [**make-interfaces-feel-b
 | Motion | Interruptible transitions · split and staggered enter animations · subtle exits · contextual icon animations · `scale(0.96)` on press · no animation on first render |
 | Performance | No `transition: all` · `will-change` only when needed |
 
-Since 1.5 the surface and motion rules are reconciled with later sources (see [section 7](#7-design-engineering-skills-we-learned-from)): shadows now mean elevation rather than replacing borders, and exits use a strong ease-out instead of ease-in.
+Since 1.5 the surface and motion rules are reconciled with later sources (see [section 8](#8-design-engineering-skills-we-learned-from)): shadows now mean elevation rather than replacing borders, and exits use a strong ease-out instead of ease-in.
 
 **What Interface Craft changes:** the values are **starting defaults** rather than rules, so design tokens and the rendered result win. It adds SwiftUI and Compose equivalents with OS-version checks, reduced-motion handling, a forced-colors caveat for shadow-only boundaries, and platform-specific target sizes (iOS 44pt, Android 48dp). Visual polish sits **last** in the priority order, after task, copy, states and accessibility.
 
@@ -323,7 +324,15 @@ Sources: [Apple HIG: Dark Mode](https://developer.apple.com/design/human-interfa
 - **Contrast per theme:** WCAG thresholds apply separately in light and dark, for every state.
 - **Static scan + visual check:** `scripts/theme_audit.py` finds leads, and rendering both themes confirms them. On shared simulators the previous appearance is recorded and restored.
 
-### 6. House rules
+### 6. Modern web platform guidance
+
+Source: Google Chrome, [Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance), and [Baseline](https://web.dev/baseline) status for browser support.
+
+- **Platform first:** `<dialog>` with `closedby`, `popover`, `<details name>`, `inert`, `:has()` and `field-sizing` replace scripts that usually miss IME input, autofill, voice control or drag-selection. `scripts/legacy_ui_audit.py` finds the hand-built versions.
+- **Forms the browser helps with:** `:user-invalid` instead of `:invalid`, standard `autocomplete` tokens instead of `autocomplete="off"`, and Enter handlers that respect IME composition.
+- **Support target first:** the project's Baseline target or `browserslist` decides; with none stated, Baseline Widely available. Anything newer ships behind `@supports` or a feature check, with a fallback that still completes the task.
+
+### 7. House rules
 
 These rules come from UX writing and ethical-design practice and are applied throughout:
 
@@ -336,7 +345,7 @@ These rules come from UX writing and ethical-design practice and are applied thr
 - **Priority order:** blockers and accessibility, then errors, ambiguity and decision load, then wording and hierarchy, then polish.
 - **Conflict resolution:** `user intent > accessibility > platform conventions > existing design system > aesthetics`.
 
-### 7. Design-engineering skills we learned from
+### 8. Design-engineering skills we learned from
 
 Version 1.5 adds ideas from four open-source agent skills, paraphrased and reconciled with the rules above (see [NOTICE](NOTICE)):
 
@@ -604,6 +613,32 @@ Static scanning can't see runtime frames, so the agent confirms every hit by tap
 
 ---
 
+## Legacy UI audit: let the browser do it
+
+The fourth scanner, [`legacy_ui_audit.py`](skills/interface-craft/scripts/legacy_ui_audit.py), finds web UI code that rebuilds by hand what the browser now does natively, and usually misses a case: IME input, autofill, pinch zoom, drag-selecting text over a backdrop. The rule set draws on Chrome's [Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance) legacy-pattern list:
+
+```bash
+python3 skills/interface-craft/scripts/legacy_ui_audit.py path/to/your/app
+```
+
+| Rule | Severity | What it catches |
+|---|---|---|
+| `zoom-disabled` | high | `user-scalable=no` / `maximum-scale=1` in the viewport meta |
+| `autocomplete-off` | high | `autocomplete="off"` on email, phone, address, payment, password or OTP fields |
+| `password-no-token` | warn | Password field whose `autocomplete` has neither `current-password` nor `new-password` |
+| `enter-no-ime-guard` | warn | Enter-to-send handler with no `isComposing` / `keyCode 229` check in the same handler (React: `e.nativeEvent.isComposing`) |
+| `max-height-hack` | warn | Accordion animated through a guessed `max-height` (≥ 500px) |
+| `premature-invalid` | warn | `:invalid` styling in a project that never uses `:user-invalid` |
+| `positive-tabindex` | warn | `tabindex` of 1 or more |
+| `dialog-target-click` | info | Light dismiss by comparing `event.target` to the dialog (use `closedby="any"`) |
+| `textarea-autosize-js` | info | Height set from `scrollHeight` (use `field-sizing: content`) |
+| `parent-class-toggle` | info | Script toggles a parent class to mirror a child's state (use `:has()`) |
+| `scheme-duplication` | info | Three or more `prefers-color-scheme: dark` blocks in one stylesheet (use `light-dark()`) |
+
+A rule stays quiet when the modern replacement sits right next to it (same handler or CSS rule; `:user-invalid` anywhere in the project), so a guarded fallback isn't reported. Before replacing anything, the agent checks the project's browser target (its Baseline target or `browserslist`, Baseline Widely available when none is stated) and keeps a fallback for features its users don't have yet.
+
+---
+
 ## Repository layout
 
 ```text
@@ -627,7 +662,8 @@ skills/interface-craft/scripts/
 ├── package.json                     # its only dependency: playwright-core
 ├── theme_audit.py                   # static scan for unverified fixed/adaptive color mixes
 ├── token_audit.py                   # static scan for font/spacing/radius drift
-└── hit_area_audit.py                # static scan for hit areas that differ from what's drawn
+├── hit_area_audit.py                # static scan for hit areas that differ from what's drawn
+└── legacy_ui_audit.py               # static scan for hand-built UI the platform now does natively
 .claude-plugin/                      # Claude Code plugin + marketplace manifests
 .codex-plugin/, .agents/plugins/     # Codex plugin manifest + marketplace entry (plugin root = repo root)
 gemini-extension.json, .gemini/      # Gemini CLI extension and workspace skills (.gemini/skills -> ../skills)

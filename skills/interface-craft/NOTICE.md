@@ -9,4 +9,6 @@ Interface Craft is © 2026 Harun Yardimci. Parts of it are adapted, paraphrased 
 | [Taste Skill](https://github.com/Leonxlnx/taste-skill), © 2026 Leonxlnx | MIT | Generic-look tells, copy tells, the logo/category tests in `references/generic-tells.md` |
 | [Impeccable](https://github.com/pbakaus/impeccable), © 2025 Paul Bakaus | Apache-2.0 | Surface modes, direction before code, anti-pattern catalogue, OKLCH palette guidance, persona pass, interactive-state list |
 
+The platform-first table, browser-assisted form rules and the rule set of `scripts/legacy_ui_audit.py` were prompted by Google Chrome's [Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance) legacy-pattern list and guides. They are paraphrased and rewritten; no files or code were copied.
+
 MIT and Apache-2.0 license texts: https://opensource.org/license/mit and https://www.apache.org/licenses/LICENSE-2.0.
